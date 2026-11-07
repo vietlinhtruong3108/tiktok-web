@@ -30,16 +30,16 @@
         </div>
         
         <div id="storageGrid" class="space-y-3">
-            <!-- Danh sách video sạch sẽ hiển thị ở đây -->
+            <!-- Danh sách video kèm link tải trực tiếp sẽ tự hiển thị ở đây -->
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycby8SovUIyD_-j2Gs1QgHKesgslph3RbDiKOmUPCzRCsCoIu1sVKJexQfMQuJNpddLk3UA/exec"; // Thay URL Google Apps Script của anh vào đây
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxqexFlZjcJhbcSeGBjmW_WQKhZ-xutxQkzulbGv_wutL0x6cas09jdn9MEftRGYSf_XA/exec"; // Thay URL Google Apps Script Web App vào đây
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCloudResults();
-            setInterval(loadCloudResults, 6000); // Tự động cập nhật mỗi 6 giây
+            setInterval(loadCloudResults, 5000); // Đọc danh sách 5s/lần từ Apps Script
         });
 
         async function sendToDrive() {
@@ -109,7 +109,7 @@
                     `;
                 });
             } catch (error) {
-                console.log("Đang chờ dữ liệu...");
+                console.log("Đang kết nối...");
             }
         }
     </script>
