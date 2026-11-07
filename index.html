@@ -30,19 +30,19 @@
         </div>
         
         <div id="dashboardGrid" class="space-y-3">
-            <!-- Các tiến trình đang chạy và video đã xong sẽ hiển thị gộp ở đây để dễ theo dõi -->
+            <!-- Tiến trình và kết quả hiển thị tự động ở đây -->
         </div>
     </div>
 
     <script>
-        const GAS_URL = "YOUR_GAS_URL_HERE"; // Link Apps Script của anh
-        const QUEUE_JSON_URL = "YOUR_GOOGLE_DRIVE_QUEUE_JSON_URL"; // Link chia sẻ file queue.json trên Drive
-        const RESULT_JSON_URL = "YOUR_GOOGLE_DRIVE_RESULT_JSON_URL"; // Link chia sẻ file result.json trên Drive
+        // 🔗 ĐIỀN 3 ĐƯỜNG DẪN CỦA ANH VÀO ĐÂY:
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby8SovUIyD_-j2Gs1QgHKesgslph3RbDiKOmUPCzRCsCoIu1sVKJexQfMQuJNpddLk3UA/exec"; 
+        const QUEUE_JSON_URL = "https://drive.google.com/file/d/1A3USjncukfEbsXKhn7Q3_wcCA_0qJnXT/view?usp=drive_link"; 
+        const RESULT_JSON_URL = "https://drive.google.com/file/d/13cqUiANagLaxHbl2gonBnFl__Rn3SHXK/view?usp=drive_linkL"; 
 
         document.addEventListener("DOMContentLoaded", () => {
             refreshDashboard();
-            // Tự động làm mới trang thái mỗi 10 giây để thấy Colab đang render đến đâu
-            setInterval(refreshDashboard, 10000);
+            setInterval(refreshDashboard, 10000); // Tự động cập nhật trạng thái mỗi 10 giây
         });
 
         async function sendToDrive() {
@@ -87,7 +87,7 @@
             let htmlContent = "";
 
             try {
-                // 1. Đọc hàng đợi (queue.json) để xem cái nào đang chờ / đang chạy
+                // 1. Đọc hàng đợi đang chạy (queue.json)
                 let queueItems = [];
                 try {
                     const resQ = await fetch(QUEUE_JSON_URL + "&t=" + new Date().getTime());
