@@ -24,25 +24,17 @@
         </div>
 
         <!-- Kho Video Sạch Đã Hoàn Thành -->
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">📦 Kho Video Sạch Đã Hoàn Thành</h2>
-            <button onclick="loadCloudResults()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới danh sách</button>
-        </div>
-        
-        <div id="storageGrid" class="space-y-3">
-            <!-- Danh sách video sạch sẽ tự động đẩy ra ở đây -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl text-center">
+            <h2 class="text-xl font-bold mb-3 text-emerald-400">📦 Kho Video Sạch Đã Hoàn Thành</h2>
+            <p class="text-slate-300 text-sm mb-6">Mỗi khi Colab chạy xong, video sẽ được lưu tự động vào thư mục chung trên Google Drive.</p>
+            <a href="https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y" target="_blank" class="inline-block bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-xl font-bold text-sm transition text-white shadow-lg">
+                📂 Mở Thư Mục Google Drive Để Tải Video
+            </a>
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycby8SovUIyD_-j2Gs1QgHKesgslph3RbDiKOmUPCzRCsCoIu1sVKJexQfMQuJNpddLk3UA/exec"; // Thay URL Google Apps Script của anh vào đây
-        const RESULT_JSON_URL = "https://drive.google.com/file/d/13cqUiANagLaxHbl2gonBnFl__Rn3SHXK/view?usp=sharing"; // Thay link chia sẻ công khai file result.json trên Drive vào đây
-
-        document.addEventListener("DOMContentLoaded", () => {
-            loadCloudResults();
-            // Tự động đồng bộ kết quả từ Google Drive về web mỗi 10 giây
-            setInterval(loadCloudResults, 10000);
-        });
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby8SovUIyD_-j2Gs1QgHKesgslph3RbDiKOmUPCzRCsCoIu1sVKJexQfMQuJNpddLk3UA/exec"; // Thay link Google Apps Script của anh vào đây
 
         async function sendToDrive() {
             const urlInput = document.getElementById('tiktokUrl').value.trim();
@@ -61,7 +53,6 @@
             statusText.className = "text-xs text-amber-400 mt-3 text-center";
 
             try {
-                // Bắn request lên Google Apps Script để lưu vào hàng đợi cho Colab đọc
                 await fetch(GAS_URL, {
                     method: "POST",
                     mode: "no-cors",
@@ -69,56 +60,15 @@
                     body: JSON.stringify({ url: urlInput })
                 });
 
-                statusText.innerText = "✅ Gửi link thành công! Colab đang render ngầm, danh sách sẽ tự động cập nhật.";
+                statusText.innerText = "✅ Gửi link thành công! Colab đang render ngầm, anh bấm nút mở thư mục bên dưới để lấy video nhé.";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
-                setTimeout(loadCloudResults, 3000);
             } catch (error) {
                 statusText.innerText = "❌ Lỗi kết nối: " + error;
                 statusText.className = "text-xs text-rose-400 mt-3 text-center";
             } finally {
                 submitBtn.innerText = "Gửi Vào Hàng Đợi";
                 submitBtn.disabled = false;
-            }
-        }
-
-        // Tự động quét file result.json trên Google Drive để hiển thị trực tiếp lên web giống hệt trên Colab
-        async function loadCloudResults() {
-            const storageGrid = document.getElementById('storageGrid');
-            
-            if (!RESULT_JSON_URL.startsWith("http")) {
-                storageGrid.innerHTML = '<p class="text-amber-400 text-center py-6">⚠️ Bạn chưa dán link chia sẻ file result.json vào biến RESULT_JSON_URL trong code trang web.</p>';
-                return;
-            }
-
-            try {
-                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(RESULT_JSON_URL + "&t=" + new Date().getTime())}`);
-                const dataWrapper = await response.json();
-                const items = JSON.parse(dataWrapper.contents);
-
-                storageGrid.innerHTML = '';
-                if (!items || items.length === 0) {
-                    storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Kho video đang trống. Hãy dán link từ trên web để hệ thống tự động chạy.</p>';
-                    return;
-                }
-
-                items.forEach((item) => {
-                    const title = item.title || 'Video Sạch';
-                    const date = item.date || 'Gần đây';
-                    const driveFolderUrl = "https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y"; // Link thư mục Drive chứa video của anh
-
-                    storageGrid.innerHTML += `
-                        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
-                            <div>
-                                <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${title}</h4>
-                                <p class="text-[11px] text-slate-400">🕒 Hoàn thành lúc: ${date}</p>
-                            </div>
-                            <a href="${driveFolderUrl}" target="_blank" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📂 Mở Thư Mục Tải Về</a>
-                        </div>
-                    `;
-                });
-            } catch (error) {
-                storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">⏳ Đang chờ hệ thống render video đầu tiên...</p>';
             }
         }
     </script>
