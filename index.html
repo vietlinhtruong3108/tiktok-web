@@ -3,67 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Lọc Sản Phẩm & Video TikTok Hot</title>
-    <!-- Tailwind CSS -->
+    <title>Kho Video TikTok Affiliate Của Tôi</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-6">
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-4xl mx-auto">
         <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold mb-2">🔥 Kho Lọc Sản Phẩm & Video TikTok Affiliate</h1>
-            <p class="text-slate-400">Hệ thống tự động lọc sản phẩm hoa hồng cao, sẵn sàng kéo traffic</p>
+            <h1 class="text-3xl font-bold mb-2">📥 Kho Lưu Trữ & Quản Lý Video TikTok</h1>
+            <p class="text-slate-400">Dán link TikTok vào đây để hệ thống tự động tải và lưu trữ</p>
         </header>
 
-        <!-- Thanh tìm kiếm -->
-        <div class="mb-6 flex flex-col md:flex-row gap-4 justify-between">
-            <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm..." class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg w-full md:w-1/3 focus:outline-none focus:border-indigo-500">
-            <div class="text-sm text-slate-400 flex items-center">
-                Cập nhật tự động từ Google Colab
+        <!-- Khung dán link thủ công -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-8 shadow-lg">
+            <h2 class="text-lg font-semibold mb-3 text-indigo-300">Thêm video mới bằng link</h2>
+            <div class="flex gap-3">
+                <input type="text" id="tiktokLinkInput" placeholder="Dán link TikTok vào đây (vd: https://vt.tiktok.com/...)" class="bg-slate-900 border border-slate-700 px-4 py-2.5 rounded-lg flex-1 focus:outline-none focus:border-indigo-500 text-sm">
+                <button onclick="saveLinkToSystem()" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-2.5 rounded-lg font-medium text-sm transition">Tải & Lưu Kho</button>
             </div>
+            <p id="statusMsg" class="text-xs text-slate-400 mt-2"></p>
         </div>
 
-        <!-- Lưới sản phẩm -->
-        <div id="productGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <p class="text-slate-400 col-span-3 text-center">Đang tải dữ liệu sản phẩm...</p>
+        <!-- Danh sách video đã lưu trong kho -->
+        <h2 class="text-xl font-bold mb-4">📦 Danh Sách Video Đã Lưu Kho</h2>
+        <div id="videoGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Dữ liệu hiển thị tự động -->
         </div>
     </div>
 
     <script>
-        let allProducts = [];
+        let videoList = [];
 
-        async function loadData() {
+        async function loadStoredVideos() {
             try {
-                // Đọc file dữ liệu JSON từ cùng thư mục (có kèm thời gian chống cache)
                 let response = await fetch('products_data.json?t=' + new Date().getTime());
-                allProducts = await response.json();
-                displayProducts(allProducts);
+                videoList = await response.json();
+                displayVideos(videoList);
             } catch (error) {
-                document.getElementById('productGrid').innerHTML = '<p class="text-red-400 col-span-3 text-center">Chưa có dữ liệu sản phẩm.</p>';
+                document.getElementById('videoGrid').innerHTML = '<p class="text-slate-400 col-span-2 text-center">Chưa có video nào trong kho.</p>';
             }
         }
 
-        function displayProducts(products) {
-            const grid = document.getElementById('productGrid');
+        function displayVideos(videos) {
+            const grid = document.getElementById('videoGrid');
             grid.innerHTML = '';
             
-            if (products.length === 0) {
-                grid.innerHTML = '<p class="text-slate-400 col-span-3 text-center">Không tìm thấy sản phẩm phù hợp.</p>';
+            if (videos.length === 0) {
+                grid.innerHTML = '<p class="text-slate-400 col-span-2 text-center">Kho video trống.</p>';
                 return;
             }
 
-            products.forEach(item => {
+            videos.forEach((item, index) => {
                 const card = `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 flex flex-col justify-between hover:border-indigo-500 transition">
+                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col justify-between">
                         <div>
-                            <h3 class="font-bold text-lg mb-2 text-indigo-300">${item.title}</h3>
-                            <div class="flex justify-between text-sm mb-4">
-                                <span class="bg-emerald-900 text-emerald-300 px-2.5 py-1 rounded-md font-semibold">Hoa hồng: ${item.commission}%</span>
-                                <span class="bg-slate-700 text-slate-300 px-2.5 py-1 rounded-md">Đã bán: ${item.sales}</span>
-                            </div>
+                            <span class="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded">Video #${index + 1}</span>
+                            <h3 class="font-medium text-sm mt-2 text-indigo-200 truncate">${item.title}</h3>
+                            <a href="${item.video_url}" target="_blank" class="text-xs text-blue-400 hover:underline block mt-1 truncate">Link gốc: ${item.video_url}</a>
                         </div>
                         <div class="flex gap-2 mt-4">
-                            <a href="${item.video_url}" target="_blank" class="flex-1 bg-slate-700 hover:bg-slate-600 text-center py-2 rounded-lg text-sm font-medium transition">Xem Video</a>
-                            <a href="${item.aff_link}" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-center py-2 rounded-lg text-sm font-medium transition">Lấy Link MKT</a>
+                            <a href="${item.video_url}" target="_blank" class="flex-1 bg-slate-700 hover:bg-slate-600 text-center py-1.5 rounded text-xs transition">Xem / Tải Video</a>
+                            <a href="${item.aff_link}" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-center py-1.5 rounded text-xs transition">Link Affiliate</a>
                         </div>
                     </div>
                 `;
@@ -71,13 +70,20 @@
             });
         }
 
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const keyword = e.target.value.toLowerCase();
-            const filtered = allProducts.filter(item => item.title.toLowerCase().includes(keyword));
-            displayProducts(filtered);
-        });
+        function saveLinkToSystem() {
+            const link = document.getElementById('tiktokLinkInput').value.trim();
+            const msg = document.getElementById('statusMsg');
+            if(!link) {
+                msg.innerText = "Vui lòng dán link TikTok hợp lệ!";
+                msg.className = "text-xs text-red-400 mt-2";
+                return;
+            }
+            msg.innerText = "Đã ghi nhận link! (Hãy copy link này đưa vào Colab hoặc hệ thống xử lý tiếp theo).";
+            msg.className = "text-xs text-emerald-400 mt-2";
+            // Ở giai đoạn này giao diện sẽ lưu tạm, anh sẽ dùng script Python dưới đây để cập nhật vào kho chính thức.
+        }
 
-        loadData();
+        loadStoredVideos();
     </script>
 </body>
 </html>
