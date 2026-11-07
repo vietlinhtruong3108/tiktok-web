@@ -1,26 +1,34 @@
 [
     {
-        "id": "1",
-        "title": "Kệ dán tường nhà tắm thông minh chống nước",
-        "commission": 30,
-        "sales": 1500,
-        "video_url": "https://tiktok.com",
-        "aff_link": "https://shop.tiktok.com/affiliate/1"
-    },
-    {
-        "id": "3",
-        "title": "Dụng cụ gọt hoa quả nhà bếp mini cầm tay",
+        "id": "101",
+        "title": "May xay toi ot mini khong day sac USB",
         "commission": 35,
-        "sales": 2800,
+        "sales": 1800,
         "video_url": "https://tiktok.com",
-        "aff_link": "https://shop.tiktok.com/affiliate/3"
+        "aff_link": "https://shop.tiktok.com/affiliate/101"
     },
     {
-        "id": "4",
-        "title": "Miếng dán chống thấm khe cửa điều hòa",
-        "commission": 28,
-        "sales": 950,
+        "id": "103",
+        "title": "Den ngu cam ung hinh nam doi mau thong minh",
+        "commission": 40,
+        "sales": 3200,
         "video_url": "https://tiktok.com",
-        "aff_link": "https://shop.tiktok.com/affiliate/4"
+        "aff_link": "https://shop.tiktok.com/affiliate/103"
+    },
+    {
+        "id": "104",
+        "title": "Tham lau chan sieu tham chong truot",
+        "commission": 30,
+        "sales": 1250,
+        "video_url": "https://tiktok.com",
+        "aff_link": "https://shop.tiktok.com/affiliate/104"
+    },
+    {
+        "id": "106",
+        "title": "Bo dao keo nha bep inox khong gi cao cap",
+        "commission": 32,
+        "sales": 2100,
+        "video_url": "https://tiktok.com",
+        "aff_link": "https://shop.tiktok.com/affiliate/106"
     }
 ]
