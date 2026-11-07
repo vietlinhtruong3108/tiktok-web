@@ -3,65 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kho Video TikTok Affiliate Của Tôi</title>
+    <title>Trình Tải Video TikTok Không Logo</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-6">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-2xl mx-auto">
         <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold mb-2">📥 Kho Lưu Trữ & Quản Lý Video TikTok</h1>
-            <p class="text-slate-400">Hệ thống quản lý video và link Affiliate tự động</p>
+            <h1 class="text-3xl font-bold mb-2">⚡ Tải Video TikTok Không Logo</h1>
+            <p class="text-slate-400">Dán link TikTok vào bên dưới để bóc tách và tải xuống ngay lập tức</p>
         </header>
 
-        <!-- Danh sách video đã lưu trong kho -->
-        <h2 class="text-xl font-bold mb-4">📦 Danh Sách Video Đã Lưu Kho</h2>
-        <div id="videoGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <p class="text-slate-400 col-span-2 text-center">Đang tải dữ liệu kho...</p>
+        <!-- Khung nhập link -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl mb-8">
+            <div class="flex flex-col md:flex-row gap-3">
+                <input type="text" id="tiktokUrl" placeholder="Dán link TikTok (vd: https://vt.tiktok.com/...)" class="bg-slate-900 border border-slate-700 px-4 py-3 rounded-lg flex-1 focus:outline-none focus:border-indigo-500 text-sm">
+                <button onclick="processDownload()" id="downloadBtn" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-medium text-sm transition flex items-center justify-center">Tải Ngay</button>
+            </div>
+            <p id="statusText" class="text-xs text-slate-400 mt-3 text-center"></p>
+        </div>
+
+        <!-- Khu vực hiển thị kết quả tải -->
+        <div id="resultContainer" class="hidden bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl">
+            <h2 class="text-lg font-semibold mb-4 text-indigo-300">🎉 Kết quả bóc tách video:</h2>
+            <div id="videoInfo" class="space-y-4">
+                <!-- Nội dung video sau khi xử lý sẽ hiện ở đây -->
+            </div>
         </div>
     </div>
 
     <script>
-        let videoList = [];
+        async function processDownload() {
+            const urlInput = document.getElementById('tiktokUrl').value.trim();
+            const statusText = document.getElementById('statusText');
+            const resultContainer = document.getElementById('resultContainer');
+            const videoInfo = document.getElementById('videoInfo');
+            const btn = document.getElementById('downloadBtn');
 
-        async function loadStoredVideos() {
-            try {
-                // Thêm tham số thời gian để tránh bị lưu cache cũ của trình duyệt
-                let response = await fetch('products_data.json?t=' + new Date().getTime());
-                videoList = await response.json();
-                displayVideos(videoList);
-            } catch (error) {
-                document.getElementById('videoGrid').innerHTML = '<p class="text-slate-400 col-span-2 text-center">Kho video hiện đang trống.</p>';
-            }
-        }
-
-        function displayVideos(videos) {
-            const grid = document.getElementById('videoGrid');
-            grid.innerHTML = '';
-            
-            if (!videos || videos.length === 0) {
-                grid.innerHTML = '<p class="text-slate-400 col-span-2 text-center">Chưa có video nào trong kho.</p>';
+            if (!urlInput) {
+                statusText.innerText = "Vui lòng dán link TikTok hợp lệ!";
+                statusText.className = "text-xs text-red-400 mt-3 text-center";
                 return;
             }
 
-            videos.forEach((item, index) => {
-                const card = `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col justify-between hover:border-indigo-500 transition">
-                        <div>
-                            <span class="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded">Video #${index + 1}</span>
-                            <h3 class="font-medium text-sm mt-2 text-indigo-200">${item.title}</h3>
-                            <a href="${item.video_url}" target="_blank" class="text-xs text-blue-400 hover:underline block mt-1 truncate">Link TikTok: ${item.video_url}</a>
-                        </div>
-                        <div class="flex gap-2 mt-4">
-                            <a href="${item.video_url}" target="_blank" class="flex-1 bg-slate-700 hover:bg-slate-600 text-center py-1.5 rounded text-xs transition">Xem Video</a>
-                            <a href="${item.aff_link}" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-center py-1.5 rounded text-xs transition">Link Affiliate</a>
-                        </div>
-                    </div>
-                `;
-                grid.innerHTML += card;
-            });
-        }
+            btn.innerText = "Đang xử lý...";
+            btn.disabled = true;
+            statusText.innerText = "Đang kết nối với hệ thống bóc tách video...";
+            statusText.className = "text-xs text-yellow-400 mt-3 text-center";
+            resultContainer.classList.add('hidden');
 
-        loadStoredVideos();
+            try {
+                // Gọi API công khai chuyên xử lý bóc tách link TikTok
+                const apiUrl = `https://tikwm.com/api/?url=${encodeURIComponent(urlInput)}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.code === 0 && data.data) {
+                    const videoData = data.data;
+                    
+                    statusText.innerText = "Bóc tách thành công!";
+                    statusText.className = "text-xs text-emerald-400 mt-3 text-center";
+
+                    // Hiển thị thông tin và nút tải không logo
+                    videoInfo.innerHTML = `
+                        <div class="flex gap-4 items-start">
+                            <img src="${videoData.cover}" alt="Thumbnail" class="w-24 h-32 object-cover rounded-lg border border-slate-700">
+                            <div class="flex-1">
+                                <h3 class="font-medium text-sm text-slate-200 line-clamp-2 mb-2">${videoData.title || "Video TikTok"}</h3>
+                                <p class="text-xs text-slate-400 mb-4">Tác giả: @${videoData.author.unique_id}</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="${videoData.play}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-medium transition text-center">📥 Tải Video (Không Logo)</a>
+                                    <a href="${videoData.music}" target="_blank" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-xs font-medium transition text-center">🎵 Tải Nhạc Nền (MP3)</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    resultContainer.classList.remove('hidden');
+                } else {
+                    throw new Error("Không thể lấy dữ liệu từ link này.");
+                }
+            } catch (error) {
+                statusText.innerText = "Lỗi: Không thể tải video. Hãy kiểm tra lại link hoặc thử lại sau!";
+                statusText.className = "text-xs text-red-400 mt-3 text-center";
+            } finally {
+                btn.innerText = "Tải Ngay";
+                btn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>
