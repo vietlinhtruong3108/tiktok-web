@@ -3,149 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Quản Lý & Đột Biến Video TikTok</title>
+    <title>Hệ Thống Tự Động Hóa Video TikTok</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-6">
     <div class="max-w-4xl mx-auto">
         <header class="mb-6 text-center">
-            <h1 class="text-2xl md:text-3xl font-bold mb-2">🚀 Kho Quản Lý & Tự Động Xử Lý Video TikTok</h1>
-            <p class="text-slate-400 text-sm">Bóc tách, đột biến mã nguồn chống quét trùng lặp và xuất file về điện thoại</p>
+            <h1 class="text-2xl md:text-3xl font-bold mb-2">🚀 Hệ Thống Tự Động Hóa Re-up TikTok</h1>
+            <p class="text-slate-400 text-sm">Dán link lên web 👉 Colab tự quét & xử lý 👉 Lấy video sạch về điện thoại</p>
         </header>
 
-        <!-- Khung nhập link bóc tách -->
+        <!-- Khung nhập link đưa vào hàng đợi -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 shadow-xl mb-8">
+            <h2 class="text-sm font-semibold mb-3 text-indigo-300">📥 Thêm Link Vào Hàng Đợi Xử Lý:</h2>
             <div class="flex flex-col md:flex-row gap-3">
                 <input type="text" id="tiktokUrl" placeholder="Dán link TikTok (vd: https://vt.tiktok.com/...)" class="bg-slate-900 border border-slate-700 px-4 py-3 rounded-lg flex-1 focus:outline-none focus:border-indigo-500 text-sm">
-                <button onclick="processDownload()" id="downloadBtn" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-medium text-sm transition text-center">Phân Tích Link</button>
+                <button onclick="addToQueue()" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-medium text-sm transition text-center text-white">Gửi Vào Hàng Đợi</button>
             </div>
             <p id="statusText" class="text-xs text-slate-400 mt-3 text-center"></p>
         </div>
 
-        <!-- Khu vực hiển thị kết quả và tùy chọn xử lý -->
-        <div id="resultContainer" class="hidden bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 shadow-xl mb-8">
-            <h2 class="text-lg font-semibold mb-3 text-indigo-300">⚙️ Tùy Chọn Xử Lý & Xuất File:</h2>
-            <div id="videoInfo"></div>
-        </div>
-
-        <!-- Kho lưu trữ dài hạn -->
+        <!-- Kho Video Sạch Đã Xử Lý (Hiển thị kết quả từ Colab trả về) -->
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">📦 Kho Video Đã Xử Lý (<span id="storageCount">0</span>)</h2>
-            <button onclick="clearStorage()" class="text-xs text-red-400 hover:underline">Xóa tất cả kho</button>
+            <h2 class="text-xl font-bold">📦 Kho Video Sạch (<span id="storageCount">0</span>)</h2>
+            <button onclick="clearStorage()" class="text-xs text-rose-400 hover:underline">Xóa tất cả kho</button>
         </div>
         
-        <div id="storageGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        <div id="storageGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Danh sách video sạch sẽ hiện ở đây -->
+        </div>
     </div>
 
     <script>
-        let currentVideoData = null;
-
         document.addEventListener("DOMContentLoaded", loadStorage);
 
-        async function processDownload() {
+        function addToQueue() {
             const urlInput = document.getElementById('tiktokUrl').value.trim();
             const statusText = document.getElementById('statusText');
-            const resultContainer = document.getElementById('resultContainer');
-            const videoInfo = document.getElementById('videoInfo');
-            const btn = document.getElementById('downloadBtn');
 
             if (!urlInput) {
                 statusText.innerText = "Vui lòng dán link TikTok hợp lệ!";
-                statusText.className = "text-xs text-red-400 mt-3 text-center";
+                statusText.className = "text-xs text-rose-400 mt-3 text-center";
                 return;
             }
 
-            btn.innerText = "Đang phân tích...";
-            btn.disabled = true;
-            statusText.innerText = "Đang kết nối hệ thống bóc tách...";
-            statusText.className = "text-xs text-yellow-400 mt-3 text-center";
-            resultContainer.classList.add('hidden');
-
-            try {
-                const apiUrl = `https://tikwm.com/api/?url=${encodeURIComponent(urlInput)}`;
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-
-                if (data.code === 0 && data.data) {
-                    currentVideoData = data.data;
-                    
-                    statusText.innerText = "Phân tích thành công! Sẵn sàng xử lý chống quét.";
-                    statusText.className = "text-xs text-emerald-400 mt-3 text-center";
-
-                    videoInfo.innerHTML = `
-                        <div class="flex flex-col sm:flex-row gap-4 items-start">
-                            <img src="${currentVideoData.cover}" alt="Thumbnail" class="w-24 h-32 object-cover rounded-lg border border-slate-700 mx-auto sm:mx-0">
-                            <div class="flex-1 w-full">
-                                <h3 class="font-medium text-sm text-slate-200 mb-1 line-clamp-2">${currentVideoData.title || "Video TikTok"}</h3>
-                                <p class="text-xs text-slate-400 mb-3">Tác giả: @${currentVideoData.author.unique_id}</p>
-                                
-                                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 mb-3 text-xs text-slate-300">
-                                    <span class="text-indigo-400 font-semibold">Trạng thái:</span> Sẵn sàng áp dụng thuật toán Đột biến mã nguồn (Mutation) chống quét trùng lặp.
-                                </div>
-
-                                <div class="flex flex-wrap gap-2">
-                                    <a href="${currentVideoData.play}" target="_blank" download class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-xs font-medium transition text-center flex-1">📥 Tải Bản Gốc</a>
-                                    <button onclick="simulateMutation()" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-lg text-xs font-medium transition flex-1 text-white">⚡ Xử Lý Chống Quét & Lưu Kho</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    resultContainer.classList.remove('hidden');
-                } else {
-                    throw new Error("Không thể lấy dữ liệu từ link này.");
-                }
-            } catch (error) {
-                statusText.innerText = "Lỗi: Không thể phân tích link. Hãy kiểm tra lại!";
-                statusText.className = "text-xs text-red-400 mt-3 text-center";
-            } finally {
-                btn.innerText = "Phân Tích Link";
-                btn.disabled = false;
-            }
-        }
-
-        function simulateMutation() {
-            if (!currentVideoData) return;
-            
-            // Thông báo giả lập quá trình xử lý mutation thành công và lưu kho
-            alert("✅ Đã áp dụng thuật toán Đột biến mã nguồn (Mutation) thành công!\nVideo đã được tối ưu hóa metadata để chống quét trùng lặp và lưu vào kho.");
-            
-            let storage = JSON.parse(localStorage.getItem('tiktok_storage_clean') || '[]');
-            
-            if (!storage.some(item => item.play === currentVideoData.play)) {
-                storage.unshift({
-                    title: (currentVideoData.title || "Video TikTok") + " [Đã Xử Lý Chống Quét]",
-                    cover: currentVideoData.cover,
-                    play: currentVideoData.play,
-                    author: currentVideoData.author.unique_id,
-                    date: new Date().toLocaleDateString('vi-VN')
-                });
-                localStorage.setItem('tiktok_storage_clean', JSON.stringify(storage));
-                loadStorage();
+            let queue = JSON.parse(localStorage.getItem('tiktok_queue') || '[]');
+            if (!queue.includes(urlInput)) {
+                queue.push(urlInput);
+                localStorage.setItem('tiktok_queue', JSON.stringify(queue));
+                statusText.innerText = "✅ Đã đưa link vào hàng đợi thành công! Colab sẽ tự động quét.";
+                statusText.className = "text-xs text-emerald-400 mt-3 text-center";
+                document.getElementById('tiktokUrl').value = '';
+            } else {
+                statusText.innerText = "⚠️ Link này đã có trong hàng đợi rồi!";
+                statusText.className = "text-xs text-amber-400 mt-3 text-center";
             }
         }
 
         function loadStorage() {
             const storageGrid = document.getElementById('storageGrid');
             const storageCount = document.getElementById('storageCount');
-            let storage = JSON.parse(localStorage.getItem('tiktok_storage_clean') || '[]');
+            let storage = JSON.parse(localStorage.getItem('tiktok_clean_storage') || '[]');
             
             storageCount.innerText = storage.length;
             storageGrid.innerHTML = '';
 
             if (storage.length === 0) {
-                storageGrid.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6">Kho video sạch đang trống. Hãy phân tích và bấm xử lý.</p>';
+                storageGrid.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6">Kho video sạch đang trống. Hãy gửi link từ web và bật Colab để xử lý.</p>';
                 return;
             }
 
             storage.forEach((item, index) => {
                 storageGrid.innerHTML += `
                     <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex gap-4 items-center justify-between">
-                        <img src="${item.cover}" class="w-16 h-20 object-cover rounded-lg border border-slate-700 flex-shrink-0">
                         <div class="flex-1 min-w-0">
-                            <h4 class="text-xs font-medium text-emerald-300 truncate mb-1">${item.title}</h4>
-                            <p class="text-[11px] text-slate-400 mb-2">@${item.author} • ${item.date}</p>
+                            <h4 class="text-xs font-medium text-emerald-300 truncate mb-1">🎬 ${item.title || "Video Đã Đột Biến"}</h4>
+                            <p class="text-[11px] text-slate-400 mb-2">🕒 ${item.date}</p>
                             <div class="flex gap-2">
-                                <a href="${item.play}" target="_blank" download class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-[11px] font-medium transition text-center text-white">Xuất File Về Điện Thoại</a>
+                                <a href="${item.videoUrl}" target="_blank" download class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-[11px] font-medium transition text-center text-white">📥 Tải Về Máy / Điện Thoại</a>
                                 <button onclick="deleteItem(${index})" class="bg-rose-900/50 hover:bg-rose-900 text-rose-300 px-3 py-1.5 rounded text-[11px] transition">Xóa</button>
                             </div>
                         </div>
@@ -155,15 +90,15 @@
         }
 
         function deleteItem(index) {
-            let storage = JSON.parse(localStorage.getItem('tiktok_storage_clean') || '[]');
+            let storage = JSON.parse(localStorage.getItem('tiktok_clean_storage') || '[]');
             storage.splice(index, 1);
-            localStorage.setItem('tiktok_storage_clean', JSON.stringify(storage));
+            localStorage.setItem('tiktok_clean_storage', JSON.stringify(storage));
             loadStorage();
         }
 
         function clearStorage() {
-            if(confirm("Bạn có chắc chắn muốn xóa toàn bộ kho video đã xử lý không?")) {
-                localStorage.removeItem('tiktok_storage_clean');
+            if(confirm("Bạn có chắc chắn muốn xóa toàn bộ kho video sạch không?")) {
+                localStorage.removeItem('tiktok_clean_storage');
                 loadStorage();
             }
         }
