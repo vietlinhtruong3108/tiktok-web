@@ -10,7 +10,7 @@
     <div class="max-w-4xl mx-auto">
         <header class="mb-6 text-center">
             <h1 class="text-2xl md:text-3xl font-bold mb-2">🚀 Hệ Thống Tự Động Hóa Re-up TikTok</h1>
-            <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab tự động chạy 👉 Báo cáo trạng thái trực tiếp</p>
+            <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab tự động chạy 👉 Nhận kết quả trực tiếp</p>
         </header>
 
         <!-- Khung nhập link -->
@@ -23,26 +23,22 @@
             <p id="statusText" class="text-xs text-slate-400 mt-3 text-center"></p>
         </div>
 
-        <!-- Trạng thái xử lý & Kho video hoàn thành -->
+        <!-- Kho Video Sạch Đã Hoàn Thành -->
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">📦 Trạng Thái & Kho Video Sạch</h2>
-            <button onclick="refreshDashboard()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới ngay</button>
+            <h2 class="text-xl font-bold">📦 Kho Video Sạch Đã Xong</h2>
+            <button onclick="loadLocalStorage()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới danh sách</button>
         </div>
         
-        <div id="dashboardGrid" class="space-y-3">
-            <!-- Tiến trình và kết quả hiển thị tự động ở đây -->
+        <div id="storageGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Video sạch sẽ hiển thị ở đây -->
         </div>
     </div>
 
     <script>
-        // 🔗 ĐIỀN 3 ĐƯỜNG DẪN CỦA ANH VÀO ĐÂY:
-        const GAS_URL = "https://script.google.com/macros/s/AKfycby8SovUIyD_-j2Gs1QgHKesgslph3RbDiKOmUPCzRCsCoIu1sVKJexQfMQuJNpddLk3UA/exec"; 
-        const QUEUE_JSON_URL = "https://drive.google.com/file/d/1A3USjncukfEbsXKhn7Q3_wcCA_0qJnXT/view?usp=drive_link"; 
-        const RESULT_JSON_URL = "https://drive.google.com/file/d/13cqUiANagLaxHbl2gonBnFl__Rn3SHXK/view?usp=drive_linkL"; 
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby8SovUIyD_-j2Gs1QgHKesgslph3RbDiKOmUPCzRCsCoIu1sVKJexQfMQuJNpddLk3UA/exec"; // Thay URL Google Apps Script của anh vào đây
 
         document.addEventListener("DOMContentLoaded", () => {
-            refreshDashboard();
-            setInterval(refreshDashboard, 10000); // Tự động cập nhật trạng thái mỗi 10 giây
+            loadLocalStorage();
         });
 
         async function sendToDrive() {
@@ -58,10 +54,11 @@
 
             submitBtn.innerText = "Đang gửi...";
             submitBtn.disabled = true;
-            statusText.innerText = "⏳ Đang đẩy link vào hệ thống Google Drive...";
+            statusText.innerText = "⏳ Đang truyền link vào hệ thống...";
             statusText.className = "text-xs text-amber-400 mt-3 text-center";
 
             try {
+                // 1. Bắn request ngầm lên Google Apps Script để lưu vào queue.json trên Drive cho Colab đọc
                 await fetch(GAS_URL, {
                     method: "POST",
                     mode: "no-cors",
@@ -69,10 +66,20 @@
                     body: JSON.stringify({ url: urlInput })
                 });
 
-                statusText.innerText = "✅ Đã gửi thành công! Colab sẽ tự động nhận diện và xử lý ngay lập tức.";
+                // 2. Lưu tạm trạng thái "Đang xử lý" lên giao diện web ngay lập tức để anh dễ theo dõi
+                let storage = JSON.parse(localStorage.getItem('tiktok_clean_storage') || '[]');
+                storage.unshift({
+                    title: "⏳ Đang render video mới từ link...",
+                    date: "Vừa xong",
+                    isPending: true
+                });
+                localStorage.setItem('tiktok_clean_storage', JSON.stringify(storage));
+                
+                loadLocalStorage();
+
+                statusText.innerText = "✅ Gửi link thành công! Colab đang xử lý ngầm, vui lòng đợi 30-45 giây.";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
-                setTimeout(refreshDashboard, 2000);
             } catch (error) {
                 statusText.innerText = "❌ Lỗi kết nối: " + error;
                 statusText.className = "text-xs text-rose-400 mt-3 text-center";
@@ -82,67 +89,40 @@
             }
         }
 
-        async function refreshDashboard() {
-            const grid = document.getElementById('dashboardGrid');
-            let htmlContent = "";
-
-            try {
-                // 1. Đọc hàng đợi đang chạy (queue.json)
-                let queueItems = [];
-                try {
-                    const resQ = await fetch(QUEUE_JSON_URL + "&t=" + new Date().getTime());
-                    queueItems = await resQ.json();
-                } catch(e) {}
-
-                if (queueItems && queueItems.length > 0) {
-                    queueItems.forEach(item => {
-                        let url = typeof item === 'object' ? item.url : item;
-                        let status = typeof item === 'object' ? item.status : 'pending';
-                        
-                        let badgeColor = status === 'processing' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-slate-700 text-slate-300 border-slate-600';
-                        let statusTextDisplay = status === 'processing' ? '⚡ Đang Render Đột Biến...' : '⏳ Đang Chờ Xử Lý...';
-
-                        htmlContent += `
-                            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-xs text-slate-300 truncate mb-1">🔗 ${url}</p>
-                                    <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold border ${badgeColor}">${statusTextDisplay}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-
-                // 2. Đọc kết quả đã xong (result.json)
-                let resultItems = [];
-                try {
-                    const resR = await fetch(RESULT_JSON_URL + "&t=" + new Date().getTime());
-                    resultItems = await resR.json();
-                } catch(e) {}
-
-                if (resultItems && resultItems.length > 0) {
-                    resultItems.forEach(item => {
-                        htmlContent += `
-                            <div class="bg-slate-800 border border-emerald-500/30 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
-                                <div class="min-w-0 flex-1">
-                                    <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${item.title}</h4>
-                                    <p class="text-[11px] text-slate-400">🕒 Hoàn thành lúc: ${item.date}</p>
-                                </div>
-                                <a href="${item.downloadUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📥 Tải Về Máy / Điện Thoại</a>
-                            </div>
-                        `;
-                    });
-                }
-
-                if ((!queueItems || queueItems.length === 0) && (!resultItems || resultItems.length === 0)) {
-                    grid.innerHTML = '<p class="text-slate-400 text-center py-6">Hàng đợi đang trống. Hãy dán link TikTok ở trên để bắt đầu hệ thống tự động!</p>';
-                } else {
-                    grid.innerHTML = htmlContent;
-                }
-
-            } catch (error) {
-                grid.innerHTML = '<p class="text-slate-400 text-center py-6">⏳ Đang kết nối đồng bộ với Google Drive...</p>';
+        // Tải danh sách video đã làm sạch lưu trực tiếp trên trình duyệt hoặc đồng bộ
+        function loadLocalStorage() {
+            const storageGrid = document.getElementById('storageGrid');
+            let storage = JSON.parse(localStorage.getItem('tiktok_clean_storage') || '[]');
+            
+            storageGrid.innerHTML = '';
+            if (storage.length === 0) {
+                storageGrid.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6">Kho video đang trống. Hãy dán link từ trên web để hệ thống tự động chạy.</p>';
+                return;
             }
+
+            storage.forEach((item) => {
+                if(item.isPending) {
+                    storageGrid.innerHTML += `
+                        <div class="bg-slate-800 border border-amber-500/30 rounded-xl p-4 flex flex-col justify-between">
+                            <h4 class="text-xs font-medium text-amber-300 truncate mb-1">⚡ ${item.title}</h4>
+                            <p class="text-[11px] text-slate-400 mb-3">🕒 ${item.date}</p>
+                            <span class="bg-amber-500/20 text-amber-300 text-center py-1.5 rounded text-[11px] font-semibold">Đang xử lý trên Colab...</span>
+                        </div>
+                    `;
+                } else {
+                    storageGrid.innerHTML += `
+                        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-xs font-medium text-emerald-300 truncate mb-1">🎬 ${item.title}</h4>
+                                <p class="text-[11px] text-slate-400 mb-3">🕒 Thời gian: ${item.date}</p>
+                            </div>
+                            <div>
+                                <a href="https://drive.google.com/drive/folders/1_Q..." target="_blank" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-xs font-semibold transition text-white block text-center">📂 Mở Thư Mục Drive Để Tải</a>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
         }
     </script>
 </body>
