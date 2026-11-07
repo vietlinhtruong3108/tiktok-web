@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Lọc Sản Phẩm & Video TikTok Hot</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold mb-2">🔥 Kho Lọc Sản Phẩm & Video TikTok Affiliate</h1>
+            <p class="text-slate-400">Hệ thống tự động lọc sản phẩm hoa hồng cao, sẵn sàng kéo traffic</p>
+        </header>
+
+        <!-- Thanh tìm kiếm -->
+        <div class="mb-6 flex flex-col md:flex-row gap-4 justify-between">
+            <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm..." class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg w-full md:w-1/3 focus:outline-none focus:border-indigo-500">
+            <div class="text-sm text-slate-400 flex items-center">
+                Cập nhật tự động từ Google Colab
+            </div>
+        </div>
+
+        <!-- Lưới sản phẩm -->
+        <div id="productGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <p class="text-slate-400 col-span-3 text-center">Đang tải dữ liệu sản phẩm...</p>
+        </div>
+    </div>
+
+    <script>
+        let allProducts = [];
+
+        async function loadData() {
+            try {
+                // Đọc file dữ liệu JSON từ cùng thư mục (có kèm thời gian chống cache)
+                let response = await fetch('products_data.json?t=' + new Date().getTime());
+                allProducts = await response.json();
+                displayProducts(allProducts);
+            } catch (error) {
+                document.getElementById('productGrid').innerHTML = '<p class="text-red-400 col-span-3 text-center">Chưa có dữ liệu sản phẩm.</p>';
+            }
+        }
+
+        function displayProducts(products) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+            
+            if (products.length === 0) {
+                grid.innerHTML = '<p class="text-slate-400 col-span-3 text-center">Không tìm thấy sản phẩm phù hợp.</p>';
+                return;
+            }
+
+            products.forEach(item => {
+                const card = `
+                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 flex flex-col justify-between hover:border-indigo-500 transition">
+                        <div>
+                            <h3 class="font-bold text-lg mb-2 text-indigo-300">${item.title}</h3>
+                            <div class="flex justify-between text-sm mb-4">
+                                <span class="bg-emerald-900 text-emerald-300 px-2.5 py-1 rounded-md font-semibold">Hoa hồng: ${item.commission}%</span>
+                                <span class="bg-slate-700 text-slate-300 px-2.5 py-1 rounded-md">Đã bán: ${item.sales}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4">
+                            <a href="${item.video_url}" target="_blank" class="flex-1 bg-slate-700 hover:bg-slate-600 text-center py-2 rounded-lg text-sm font-medium transition">Xem Video</a>
+                            <a href="${item.aff_link}" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-center py-2 rounded-lg text-sm font-medium transition">Lấy Link MKT</a>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = allProducts.filter(item => item.title.toLowerCase().includes(keyword));
+            displayProducts(filtered);
+        });
+
+        loadData();
+    </script>
+</body>
+</html>
