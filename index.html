@@ -26,19 +26,22 @@
         <!-- Kho Video Sạch Đã Hoàn Thành -->
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">📦 Kho Video Sạch Đã Xong</h2>
-            <button onclick="loadLocalStorage()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới danh sách</button>
+            <button onclick="loadCloudResults()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới danh sách</button>
         </div>
         
         <div id="storageGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Video sạch sẽ hiển thị ở đây -->
+            <!-- Video sạch sẽ tự động hiển thị ở đây -->
         </div>
     </div>
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycby8SovUIyD_-j2Gs1QgHKesgslph3RbDiKOmUPCzRCsCoIu1sVKJexQfMQuJNpddLk3UA/exec"; // Thay URL Google Apps Script của anh vào đây
+        const RESULT_JSON_URL = "https://drive.google.com/file/d/13cqUiANagLaxHbl2gonBnFl__Rn3SHXK/view?usp=sharing"; // Thay link chia sẻ công khai file result.json trên Drive vào đây
 
         document.addEventListener("DOMContentLoaded", () => {
-            loadLocalStorage();
+            loadCloudResults();
+            // Tự động quét lại kết quả trên Drive mỗi 10 giây để thấy ngay khi Colab render xong
+            setInterval(loadCloudResults, 10000);
         });
 
         async function sendToDrive() {
@@ -58,7 +61,7 @@
             statusText.className = "text-xs text-amber-400 mt-3 text-center";
 
             try {
-                // 1. Bắn request ngầm lên Google Apps Script để lưu vào queue.json trên Drive cho Colab đọc
+                // Bắn request ngầm lên Google Apps Script để lưu vào queue.json trên Drive cho Colab đọc
                 await fetch(GAS_URL, {
                     method: "POST",
                     mode: "no-cors",
@@ -66,20 +69,10 @@
                     body: JSON.stringify({ url: urlInput })
                 });
 
-                // 2. Lưu tạm trạng thái "Đang xử lý" lên giao diện web ngay lập tức để anh dễ theo dõi
-                let storage = JSON.parse(localStorage.getItem('tiktok_clean_storage') || '[]');
-                storage.unshift({
-                    title: "⏳ Đang render video mới từ link...",
-                    date: "Vừa xong",
-                    isPending: true
-                });
-                localStorage.setItem('tiktok_clean_storage', JSON.stringify(storage));
-                
-                loadLocalStorage();
-
-                statusText.innerText = "✅ Gửi link thành công! Colab đang xử lý ngầm, vui lòng đợi 30-45 giây.";
+                statusText.innerText = "✅ Gửi link thành công! Colab đang render ngầm, danh sách bên dưới sẽ tự động cập nhật khi xong.";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
+                setTimeout(loadCloudResults, 3000);
             } catch (error) {
                 statusText.innerText = "❌ Lỗi kết nối: " + error;
                 statusText.className = "text-xs text-rose-400 mt-3 text-center";
@@ -89,40 +82,43 @@
             }
         }
 
-        // Tải danh sách video đã làm sạch lưu trực tiếp trên trình duyệt hoặc đồng bộ
-        function loadLocalStorage() {
+        // Đọc trực tiếp file result.json trên Google Drive để đồng bộ kết quả thời gian thực
+        async function loadCloudResults() {
             const storageGrid = document.getElementById('storageGrid');
-            let storage = JSON.parse(localStorage.getItem('tiktok_clean_storage') || '[]');
             
-            storageGrid.innerHTML = '';
-            if (storage.length === 0) {
-                storageGrid.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6">Kho video đang trống. Hãy dán link từ trên web để hệ thống tự động chạy.</p>';
+            if (!RESULT_JSON_URL.startsWith("http")) {
+                storageGrid.innerHTML = '<p class="text-amber-400 col-span-2 text-center py-6">⚠️ Bạn chưa cấu hình đường dẫn RESULT_JSON_URL trong code trang web.</p>';
                 return;
             }
 
-            storage.forEach((item) => {
-                if(item.isPending) {
+            try {
+                // Dùng dịch vụ trung gian cdn/cors hoặc fetch trực tiếp file json trên Drive kèm tham số chống cache
+                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(RESULT_JSON_URL + "&t=" + new Date().getTime())}`);
+                const dataWrapper = await response.json();
+                const data = JSON.parse(dataWrapper.contents);
+
+                storageGrid.innerHTML = '';
+                if (!data || data.length === 0) {
+                    storageGrid.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6">Kho video đang trống. Hãy dán link từ trên web để hệ thống tự động chạy.</p>';
+                    return;
+                }
+
+                data.forEach((item) => {
                     storageGrid.innerHTML += `
-                        <div class="bg-slate-800 border border-amber-500/30 rounded-xl p-4 flex flex-col justify-between">
-                            <h4 class="text-xs font-medium text-amber-300 truncate mb-1">⚡ ${item.title}</h4>
-                            <p class="text-[11px] text-slate-400 mb-3">🕒 ${item.date}</p>
-                            <span class="bg-amber-500/20 text-amber-300 text-center py-1.5 rounded text-[11px] font-semibold">Đang xử lý trên Colab...</span>
-                        </div>
-                    `;
-                } else {
-                    storageGrid.innerHTML += `
-                        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col justify-between">
+                        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col justify-between shadow-lg">
                             <div>
-                                <h4 class="text-xs font-medium text-emerald-300 truncate mb-1">🎬 ${item.title}</h4>
+                                <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${item.title}</h4>
                                 <p class="text-[11px] text-slate-400 mb-3">🕒 Thời gian: ${item.date}</p>
                             </div>
                             <div>
-                                <a href="https://drive.google.com/drive/folders/1_Q..." target="_blank" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-xs font-semibold transition text-white block text-center">📂 Mở Thư Mục Drive Để Tải</a>
+                                <a href="https://drive.google.com/drive/folders/1_Q..." target="_blank" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-xs font-semibold transition text-white block text-center">📂 Mở Thư Mục Drive Tải File</a>
                             </div>
                         </div>
                     `;
-                }
-            });
+                });
+            } catch (error) {
+                storageGrid.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6">⏳ Đang chờ hệ thống render video đầu tiên...</p>';
+            }
         }
     </script>
 </body>
