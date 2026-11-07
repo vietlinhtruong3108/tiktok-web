@@ -30,19 +30,16 @@
         </div>
         
         <div id="storageGrid" class="space-y-3">
-            <!-- Danh sách video kèm link tải trực tiếp sẽ tự hiển thị ở đây -->
+            <!-- Danh sách video sạch sẽ hiển thị ở đây -->
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycby8SovUIyD_-j2Gs1QgHKesgslph3RbDiKOmUPCzRCsCoIu1sVKJexQfMQuJNpddLk3UA/exec"; 
-        
-        // ⚠️ DÁN ĐOẠN ID FILE RESULT.JSON VÀO ĐÂY (Thay thế chữ RESULT_FILE_ID):
-        const RESULT_FILE_ID = "13cqUiANagLaxHbl2gonBnFl__Rn3SHXK"; 
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby8SovUIyD_-j2Gs1QgHKesgslph3RbDiKOmUPCzRCsCoIu1sVKJexQfMQuJNpddLk3UA/exec"; // Thay URL Google Apps Script của anh vào đây
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCloudResults();
-            setInterval(loadCloudResults, 8000); // Đồng bộ tự động mỗi 8 giây
+            setInterval(loadCloudResults, 6000); // Tự động cập nhật mỗi 6 giây
         });
 
         async function sendToDrive() {
@@ -69,10 +66,10 @@
                     body: JSON.stringify({ url: urlInput })
                 });
 
-                statusText.innerText = "✅ Gửi link thành công! Colab đang render ngầm, danh sách bên dưới sẽ cập nhật link video ngay.";
+                statusText.innerText = "✅ Gửi link thành công! Colab đang render ngầm...";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
-                setTimeout(loadCloudResults, 3000);
+                setTimeout(loadCloudResults, 2000);
             } catch (error) {
                 statusText.innerText = "❌ Lỗi kết nối: " + error;
                 statusText.className = "text-xs text-rose-400 mt-3 text-center";
@@ -84,27 +81,22 @@
 
         async function loadCloudResults() {
             const storageGrid = document.getElementById('storageGrid');
-            if (!RESULT_FILE_ID || RESULT_FILE_ID.includes("THAY_ID")) {
-                storageGrid.innerHTML = '<p class="text-amber-400 text-center py-6">⚠️ Anh chưa điền ID file result.json vào biến RESULT_FILE_ID trong code trang web.</p>';
-                return;
-            }
+            if (!GAS_URL.startsWith("http")) return;
 
             try {
-                // Gọi trực tiếp dữ liệu công khai từ Google Drive
-                const directDriveUrl = `https://drive.google.com/uc?export=download&id=${RESULT_FILE_ID}&t=${new Date().getTime()}`;
-                const response = await fetch(directDriveUrl);
+                const response = await fetch(GAS_URL);
                 const items = await response.json();
 
                 storageGrid.innerHTML = '';
                 if (!items || items.length === 0) {
-                    storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Kho video đang trống. Hãy dán link từ trên web để bắt đầu!</p>';
+                    storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Kho video đang trống. Hãy dán link để bắt đầu!</p>';
                     return;
                 }
 
                 items.forEach((item) => {
                     const title = item.title || 'Video Sạch';
                     const date = item.date || 'Gần đây';
-                    const downloadUrl = item.downloadUrl || '#';
+                    const downloadUrl = item.downloadUrl || 'https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y';
 
                     storageGrid.innerHTML += `
                         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
@@ -117,7 +109,7 @@
                     `;
                 });
             } catch (error) {
-                // Trường hợp trình duyệt cần làm mới để đọc file JSON
+                console.log("Đang chờ dữ liệu...");
             }
         }
     </script>
