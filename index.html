@@ -25,12 +25,12 @@
 
         <!-- Kho Video Sạch Đã Hoàn Thành -->
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">📦 Kho Video Sạch Đã Xong</h2>
+            <h2 class="text-xl font-bold">📦 Kho Video Sạch Đã Hoàn Thành</h2>
             <button onclick="loadCloudResults()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới danh sách</button>
         </div>
         
-        <div id="storageGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Video sạch sẽ tự động hiển thị ở đây -->
+        <div id="storageGrid" class="space-y-3">
+            <!-- Danh sách video sạch sẽ tự động đẩy ra ở đây -->
         </div>
     </div>
 
@@ -40,7 +40,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCloudResults();
-            // Tự động quét lại kết quả trên Drive mỗi 10 giây để thấy ngay khi Colab render xong
+            // Tự động đồng bộ kết quả từ Google Drive về web mỗi 10 giây
             setInterval(loadCloudResults, 10000);
         });
 
@@ -61,7 +61,7 @@
             statusText.className = "text-xs text-amber-400 mt-3 text-center";
 
             try {
-                // Bắn request ngầm lên Google Apps Script để lưu vào queue.json trên Drive cho Colab đọc
+                // Bắn request lên Google Apps Script để lưu vào hàng đợi cho Colab đọc
                 await fetch(GAS_URL, {
                     method: "POST",
                     mode: "no-cors",
@@ -69,7 +69,7 @@
                     body: JSON.stringify({ url: urlInput })
                 });
 
-                statusText.innerText = "✅ Gửi link thành công! Colab đang render ngầm, danh sách bên dưới sẽ tự động cập nhật khi xong.";
+                statusText.innerText = "✅ Gửi link thành công! Colab đang render ngầm, danh sách sẽ tự động cập nhật.";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
                 setTimeout(loadCloudResults, 3000);
@@ -82,42 +82,43 @@
             }
         }
 
-        // Đọc trực tiếp file result.json trên Google Drive để đồng bộ kết quả thời gian thực
+        // Tự động quét file result.json trên Google Drive để hiển thị trực tiếp lên web giống hệt trên Colab
         async function loadCloudResults() {
             const storageGrid = document.getElementById('storageGrid');
             
             if (!RESULT_JSON_URL.startsWith("http")) {
-                storageGrid.innerHTML = '<p class="text-amber-400 col-span-2 text-center py-6">⚠️ Bạn chưa cấu hình đường dẫn RESULT_JSON_URL trong code trang web.</p>';
+                storageGrid.innerHTML = '<p class="text-amber-400 text-center py-6">⚠️ Bạn chưa dán link chia sẻ file result.json vào biến RESULT_JSON_URL trong code trang web.</p>';
                 return;
             }
 
             try {
-                // Dùng dịch vụ trung gian cdn/cors hoặc fetch trực tiếp file json trên Drive kèm tham số chống cache
                 const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(RESULT_JSON_URL + "&t=" + new Date().getTime())}`);
                 const dataWrapper = await response.json();
-                const data = JSON.parse(dataWrapper.contents);
+                const items = JSON.parse(dataWrapper.contents);
 
                 storageGrid.innerHTML = '';
-                if (!data || data.length === 0) {
-                    storageGrid.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6">Kho video đang trống. Hãy dán link từ trên web để hệ thống tự động chạy.</p>';
+                if (!items || items.length === 0) {
+                    storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Kho video đang trống. Hãy dán link từ trên web để hệ thống tự động chạy.</p>';
                     return;
                 }
 
-                data.forEach((item) => {
+                items.forEach((item) => {
+                    const title = item.title || 'Video Sạch';
+                    const date = item.date || 'Gần đây';
+                    const driveFolderUrl = "https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y"; // Link thư mục Drive chứa video của anh
+
                     storageGrid.innerHTML += `
-                        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col justify-between shadow-lg">
+                        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
                             <div>
-                                <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${item.title}</h4>
-                                <p class="text-[11px] text-slate-400 mb-3">🕒 Thời gian: ${item.date}</p>
+                                <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${title}</h4>
+                                <p class="text-[11px] text-slate-400">🕒 Hoàn thành lúc: ${date}</p>
                             </div>
-                            <div>
-                                <a href="https://drive.google.com/drive/folders/1_Q..." target="_blank" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-xs font-semibold transition text-white block text-center">📂 Mở Thư Mục Drive Tải File</a>
-                            </div>
+                            <a href="${driveFolderUrl}" target="_blank" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📂 Mở Thư Mục Tải Về</a>
                         </div>
                     `;
                 });
             } catch (error) {
-                storageGrid.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6">⏳ Đang chờ hệ thống render video đầu tiên...</p>';
+                storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">⏳ Đang chờ hệ thống render video đầu tiên...</p>';
             }
         }
     </script>
