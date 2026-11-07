@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Tự Động Hóa Video TikTok</title>
+    <title>Hệ Thống Tự Động Hóa Re-up TikTok</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-6">
     <div class="max-w-4xl mx-auto">
         <header class="mb-6 text-center">
             <h1 class="text-2xl md:text-3xl font-bold mb-2">🚀 Hệ Thống Tự Động Hóa Re-up TikTok</h1>
-            <p class="text-slate-400 text-sm">Dán link lên web 👉 Colab tự quét & xử lý 👉 Lấy video sạch về điện thoại</p>
+            <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab tự động quét, đột biến chống quét 👉 Nhận video sạch</p>
         </header>
 
         <!-- Khung nhập link đưa vào hàng đợi -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 shadow-xl mb-8">
-            <h2 class="text-sm font-semibold mb-3 text-indigo-300">📥 Thêm Link Vào Hàng Đợi Xử Lý:</h2>
+            <h2 class="text-sm font-semibold mb-3 text-indigo-300">📥 Dán Link TikTok Cần Xử Lý:</h2>
             <div class="flex flex-col md:flex-row gap-3">
                 <input type="text" id="tiktokUrl" placeholder="Dán link TikTok (vd: https://vt.tiktok.com/...)" class="bg-slate-900 border border-slate-700 px-4 py-3 rounded-lg flex-1 focus:outline-none focus:border-indigo-500 text-sm">
                 <button onclick="addToQueue()" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-medium text-sm transition text-center text-white">Gửi Vào Hàng Đợi</button>
@@ -23,19 +23,33 @@
             <p id="statusText" class="text-xs text-slate-400 mt-3 text-center"></p>
         </div>
 
-        <!-- Kho Video Sạch Đã Xử Lý (Hiển thị kết quả từ Colab trả về) -->
+        <!-- Hàng đợi chờ Colab xử lý -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 shadow-xl mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-semibold text-amber-300">⏳ Danh Sách Chờ Colab Xử Lý (<span id="queueCount">0</span>)</h2>
+                <button onclick="exportQueueJSON()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-medium transition">📥 Tải file Queue.json ném vào Drive</button>
+            </div>
+            <div id="queueList" class="space-y-2 max-h-40 overflow-y-auto">
+                <!-- Danh sách link chờ -->
+            </div>
+        </div>
+
+        <!-- Kho Video Sạch Đã Xử Lý -->
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">📦 Kho Video Sạch (<span id="storageCount">0</span>)</h2>
-            <button onclick="clearStorage()" class="text-xs text-rose-400 hover:underline">Xóa tất cả kho</button>
+            <h2 class="text-xl font-bold">📦 Kho Video Sạch Đã Hoàn Thành</h2>
+            <button onclick="clearStorage()" class="text-xs text-rose-400 hover:underline">Xóa lịch sử kho</button>
         </div>
         
         <div id="storageGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Danh sách video sạch sẽ hiện ở đây -->
+            <!-- Video sạch sẽ hiển thị ở đây -->
         </div>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", loadStorage);
+        document.addEventListener("DOMContentLoaded", () => {
+            loadQueue();
+            loadStorage();
+        });
 
         function addToQueue() {
             const urlInput = document.getElementById('tiktokUrl').value.trim();
@@ -48,28 +62,79 @@
             }
 
             let queue = JSON.parse(localStorage.getItem('tiktok_queue') || '[]');
-            if (!queue.includes(urlInput)) {
-                queue.push(urlInput);
+            if (!queue.some(item => item.url === urlInput)) {
+                queue.push({ url: urlInput, date: new Date().toLocaleTimeString('vi-VN') });
                 localStorage.setItem('tiktok_queue', JSON.stringify(queue));
-                statusText.innerText = "✅ Đã đưa link vào hàng đợi thành công! Colab sẽ tự động quét.";
+                
+                statusText.innerText = "✅ Đã thêm vào hàng đợi thành công!";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
+                loadQueue();
             } else {
                 statusText.innerText = "⚠️ Link này đã có trong hàng đợi rồi!";
                 statusText.className = "text-xs text-amber-400 mt-3 text-center";
             }
         }
 
+        // Tải xuống file queue.json để ném thẳng vào thư mục TikTok_Automation trên Google Drive
+        function exportQueueJSON() {
+            let queue = JSON.parse(localStorage.getItem('tiktok_queue') || '[]');
+            if (queue.length === 0) {
+                alert("Hàng đợi đang trống! Hãy dán ít nhất 1 link.");
+                return;
+            }
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(queue, null, 4));
+            let downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "queue.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            
+            // Xóa queue trên web sau khi đã xuất file
+            localStorage.removeItem('tiktok_queue');
+            loadQueue();
+            alert("Đã tải file queue.json! Anh chỉ cần upload file này vào thư mục 'TikTok_Automation' trên Google Drive là Colab sẽ tự động nhận diện và xử lý.");
+        }
+
+        function loadQueue() {
+            const queueList = document.getElementById('queueList');
+            const queueCount = document.getElementById('queueCount');
+            let queue = JSON.parse(localStorage.getItem('tiktok_queue') || '[]');
+            
+            queueCount.innerText = queue.length;
+            queueList.innerHTML = '';
+
+            if (queue.length === 0) {
+                queueList.innerHTML = '<p class="text-xs text-slate-400 py-2">Hàng đợi trống.</p>';
+                return;
+            }
+
+            queue.forEach((item, index) => {
+                queueList.innerHTML += `
+                    <div class="bg-slate-900 p-2 rounded border border-slate-700 flex justify-between items-center text-xs">
+                        <span class="truncate text-slate-300 max-w-[80%]">${item.url}</span>
+                        <button onclick="removeQueue(${index})" class="text-rose-400 hover:underline">Xóa</button>
+                    </div>
+                `;
+            });
+        }
+
+        function removeQueue(index) {
+            let queue = JSON.parse(localStorage.getItem('tiktok_queue') || '[]');
+            queue.splice(index, 1);
+            localStorage.setItem('tiktok_queue', JSON.stringify(queue));
+            loadQueue();
+        }
+
         function loadStorage() {
             const storageGrid = document.getElementById('storageGrid');
-            const storageCount = document.getElementById('storageCount');
             let storage = JSON.parse(localStorage.getItem('tiktok_clean_storage') || '[]');
             
-            storageCount.innerText = storage.length;
             storageGrid.innerHTML = '';
 
             if (storage.length === 0) {
-                storageGrid.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6">Kho video sạch đang trống. Hãy gửi link từ web và bật Colab để xử lý.</p>';
+                storageGrid.innerHTML = '<p class="text-slate-400 col-span-2 text-center py-6">Kho video sạch đang trống.</p>';
                 return;
             }
 
@@ -77,11 +142,10 @@
                 storageGrid.innerHTML += `
                     <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex gap-4 items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <h4 class="text-xs font-medium text-emerald-300 truncate mb-1">🎬 ${item.title || "Video Đã Đột Biến"}</h4>
-                            <p class="text-[11px] text-slate-400 mb-2">🕒 ${item.date}</p>
+                            <h4 class="text-xs font-medium text-emerald-300 truncate mb-1">🎬 ${item.title}</h4>
+                            <p class="text-[11px] text-slate-400 mb-2">📁 Lưu tại Google Drive: TikTok_Automation</p>
                             <div class="flex gap-2">
-                                <a href="${item.videoUrl}" target="_blank" download class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-[11px] font-medium transition text-center text-white">📥 Tải Về Máy / Điện Thoại</a>
-                                <button onclick="deleteItem(${index})" class="bg-rose-900/50 hover:bg-rose-900 text-rose-300 px-3 py-1.5 rounded text-[11px] transition">Xóa</button>
+                                <span class="text-xs text-slate-400">Vào Google Drive để tải file về điện thoại/máy tính nhé!</span>
                             </div>
                         </div>
                     </div>
@@ -89,18 +153,9 @@
             });
         }
 
-        function deleteItem(index) {
-            let storage = JSON.parse(localStorage.getItem('tiktok_clean_storage') || '[]');
-            storage.splice(index, 1);
-            localStorage.setItem('tiktok_clean_storage', JSON.stringify(storage));
-            loadStorage();
-        }
-
         function clearStorage() {
-            if(confirm("Bạn có chắc chắn muốn xóa toàn bộ kho video sạch không?")) {
-                localStorage.removeItem('tiktok_clean_storage');
-                loadStorage();
-            }
+            localStorage.removeItem('tiktok_clean_storage');
+            loadStorage();
         }
     </script>
 </body>
