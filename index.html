@@ -30,16 +30,16 @@
         </div>
         
         <div id="storageGrid" class="space-y-3">
-            <!-- Danh sách video kèm link tải trực tiếp sẽ tự hiển thị ở đây -->
+            <p class="text-slate-400 text-center py-6">⏳ Đang lấy dữ liệu từ Google Drive...</p>
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxqexFlZjcJhbcSeGBjmW_WQKhZ-xutxQkzulbGv_wutL0x6cas09jdn9MEftRGYSf_XA/exec"; // Thay URL Google Apps Script Web App vào đây
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxqexFlZjcJhbcSeGBjmW_WQKhZ-xutxQkzulbGv_wutL0x6cas09jdn9MEftRGYSf_XA/exec"; // Dán link Apps Script của anh vào đây
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCloudResults();
-            setInterval(loadCloudResults, 5000); // Đọc danh sách 5s/lần từ Apps Script
+            setInterval(loadCloudResults, 6000);
         });
 
         async function sendToDrive() {
@@ -66,7 +66,7 @@
                     body: JSON.stringify({ url: urlInput })
                 });
 
-                statusText.innerText = "✅ Gửi link thành công! Colab đang render ngầm...";
+                statusText.innerText = "✅ Gửi link thành công! Colab đang xử lý ngầm...";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
                 setTimeout(loadCloudResults, 2000);
@@ -79,38 +79,45 @@
             }
         }
 
-        async function loadCloudResults() {
+        // Hàm JSONP Callback được gọi khi script nạp thành công
+        window.handleCloudResults = function(items) {
             const storageGrid = document.getElementById('storageGrid');
+            storageGrid.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Kho video đang trống. Hãy dán link để bắt đầu!</p>';
+                return;
+            }
+
+            items.forEach((item) => {
+                const title = item.title || 'Video Sạch';
+                const date = item.date || 'Gần đây';
+                const downloadUrl = item.downloadUrl || 'https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y';
+
+                storageGrid.innerHTML += `
+                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
+                        <div class="min-w-0 flex-1">
+                            <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${title}</h4>
+                            <p class="text-[11px] text-slate-400">🕒 Hoàn thành lúc: ${date}</p>
+                        </div>
+                        <a href="${downloadUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📥 Xem / Tải Video Trực Tiếp</a>
+                    </div>
+                `;
+            });
+        };
+
+        function loadCloudResults() {
             if (!GAS_URL.startsWith("http")) return;
 
-            try {
-                const response = await fetch(GAS_URL);
-                const items = await response.json();
+            // Xóa thẻ script cũ nếu có
+            const oldScript = document.getElementById('jsonpScript');
+            if (oldScript) oldScript.remove();
 
-                storageGrid.innerHTML = '';
-                if (!items || items.length === 0) {
-                    storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Kho video đang trống. Hãy dán link để bắt đầu!</p>';
-                    return;
-                }
-
-                items.forEach((item) => {
-                    const title = item.title || 'Video Sạch';
-                    const date = item.date || 'Gần đây';
-                    const downloadUrl = item.downloadUrl || 'https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y';
-
-                    storageGrid.innerHTML += `
-                        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
-                            <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${title}</h4>
-                                <p class="text-[11px] text-slate-400">🕒 Hoàn thành lúc: ${date}</p>
-                            </div>
-                            <a href="${downloadUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📥 Xem / Tải Video Trực Tiếp</a>
-                        </div>
-                    `;
-                });
-            } catch (error) {
-                console.log("Đang kết nối...");
-            }
+            // Tạo thẻ script mới gọi JSONP để vượt qua CORS
+            const script = document.createElement('script');
+            script.id = 'jsonpScript';
+            script.src = `${GAS_URL}?callback=handleCloudResults&t=${new Date().getTime()}`;
+            document.body.appendChild(script);
         }
     </script>
 </body>
