@@ -3,185 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapTik - Tải Video TikTok Không Logo / Render Video Sạch</title>
+    <title>SnapTik - Tải Video TikTok Không Logo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .gradient-btn {
-            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-        }
-        .gradient-btn:hover {
-            background: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
-        }
+        .gradient-btn { background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); }
+        .gradient-btn:hover { background: linear-gradient(135deg, #9333ea 0%, #db2777 100%); }
     </style>
 </head>
 <body class="bg-[#0f0b1e] text-slate-100 min-h-screen flex flex-col items-center justify-start p-4 md:p-8 font-sans">
 
-    <!-- Header SnapTik Style -->
     <header class="w-full max-w-4xl text-center mb-8">
         <h1 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 tracking-wider mb-3">SNAPTIK RENDER</h1>
-        <p class="text-slate-300 text-sm md:text-base font-semibold">Tải Video TikTok Không Logo, Render Video Sạch Miễn Phí</p>
+        <p class="text-slate-300 text-sm md:text-base font-semibold">Tải Video TikTok Không Logo, Render Sạch Trực Tiếp</p>
     </header>
 
     <main class="w-full max-w-2xl">
-        <!-- Khung Nhập Link -->
-        <div id="searchBox" class="bg-[#18132b] border border-purple-900/50 rounded-2xl p-4 md:p-6 shadow-2xl mb-6">
+        <div class="bg-[#18132b] border border-purple-900/50 rounded-2xl p-4 md:p-6 shadow-2xl mb-6">
             <div class="flex flex-col md:flex-row gap-3">
-                <input type="text" id="tiktokUrl" placeholder="Dán link TikTok (vd: https://vt.tiktok.com/...)" class="bg-[#0f0b1e] border border-purple-800/60 text-white px-5 py-4 rounded-xl flex-1 focus:outline-none focus:border-pink-500 text-sm md:text-base">
-                <button onclick="processVideo()" id="submitBtn" class="gradient-btn font-bold px-8 py-4 rounded-xl text-white transition transform active:scale-95 shadow-lg text-sm md:text-base shrink-0">
-                    Tải Xuống
-                </button>
+                <input type="text" id="tiktokUrl" placeholder="Dán link TikTok..." class="bg-[#0f0b1e] border border-purple-800/60 text-white px-5 py-4 rounded-xl flex-1 focus:outline-none focus:border-pink-500 text-sm">
+                <button onclick="sendToGitHubQueue()" id="submitBtn" class="gradient-btn font-bold px-8 py-4 rounded-xl text-white transition shadow-lg text-sm shrink-0">Tải Xuống</button>
             </div>
             <p id="statusText" class="text-xs text-purple-300 mt-3 text-center hidden"></p>
         </div>
 
-        <!-- Khung Kết Quả Hiển Thị Nút Tải Giống SnapTik -->
-        <div id="resultBox" class="bg-[#18132b] border border-purple-900/50 rounded-2xl p-6 shadow-2xl hidden">
+        <div id="resultBox" class="bg-[#18132b] border border-purple-900/50 rounded-2xl p-6 shadow-2xl hidden mb-6">
             <div class="flex flex-col md:flex-row items-center gap-6">
-                <!-- Thumbnail / Icon đại diện -->
-                <div class="w-28 h-28 bg-purple-950/60 border border-purple-700/50 rounded-xl flex items-center justify-center text-4xl shrink-0">
-                    🎬
-                </div>
-
-                <!-- Tiêu đề & Nút bấm Tải MP4 -->
+                <div class="w-28 h-28 bg-purple-950/60 border border-purple-700/50 rounded-xl flex items-center justify-center text-4xl shrink-0">🎬</div>
                 <div class="flex-1 w-full space-y-3 text-center md:text-left">
                     <h3 id="videoTitle" class="text-sm font-semibold text-slate-200 line-clamp-2">...</h3>
-                    
-                    <div class="space-y-2 pt-2">
-                        <a id="downloadCleanBtn" href="#" target="_blank" class="block w-full text-center gradient-btn font-bold py-3 px-4 rounded-xl text-white shadow-lg transition transform hover:scale-[1.01]">
-                            Tải MP4 (Video Sạch / Lách Logo)
-                        </a>
-                        <button onclick="resetSearch()" class="block w-full text-center bg-[#251d42] hover:bg-[#2d244f] text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-xs transition">
-                            ↩️ Thử liên kết khác
-                        </button>
-                    </div>
+                    <a id="downloadCleanBtn" href="#" target="_blank" class="block w-full text-center gradient-btn font-bold py-3 px-4 rounded-xl text-white shadow-lg transition">Tải MP4 (Video Sạch)</a>
                 </div>
             </div>
         </div>
 
-        <!-- Danh Sách Các Video Render Gần Đây -->
-        <div class="mt-10">
-            <h3 class="text-xs font-bold uppercase text-purple-400 tracking-wider mb-4 text-center md:text-left">📜 Lịch Sử Video Đã Render Gần Đây</h3>
+        <div>
+            <h3 class="text-xs font-bold uppercase text-purple-400 tracking-wider mb-4 text-center md:text-left">📜 Lịch Sử Video Đã Render</h3>
             <div id="historyGrid" class="space-y-3">
-                <p class="text-slate-500 text-xs text-center py-4">Đang tải lịch sử kết quả...</p>
+                <p class="text-slate-500 text-xs text-center py-4">Đang tải lịch sử...</p>
             </div>
         </div>
     </main>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxuHidf597Y6wN8VnzSdlmXOGLGgBVPVuKnZsYa9SVSMsKKM6AkLSoKu1msTgvNV3sM/exec"; // ⚡ DÁN ĐƯỜNG DẪN WEB APP CỦA ANH VÀO ĐÂY
+        // Đường dẫn file result.json trực tiếp trên GitHub Pages hoặc kho chứa của anh
+        const RESULT_JSON_URL = "./result.json"; 
         let currentTargetUrl = "";
         let checkInterval = null;
 
         document.addEventListener("DOMContentLoaded", () => {
-            loadCloudResults();
-            setInterval(loadCloudResults, 6000);
+            loadResults();
+            setInterval(loadResults, 5000);
         });
 
-        async function processVideo() {
+        async function sendToGitHubQueue() {
             const urlInput = document.getElementById('tiktokUrl').value.trim();
             const statusText = document.getElementById('statusText');
             const submitBtn = document.getElementById('submitBtn');
-            const resultBox = document.getElementById('resultBox');
 
-            if (!urlInput) {
-                alert("Vui lòng dán link TikTok hợp lệ!");
-                return;
-            }
+            if (!urlInput) { alert("Vui lòng dán link TikTok!"); return; }
 
             currentTargetUrl = urlInput;
             submitBtn.disabled = true;
-            submitBtn.innerText = "Đang xử lý...";
+            submitBtn.innerText = "Đang gửi...";
             statusText.classList.remove('hidden');
-            statusText.innerText = "⏳ Đang gửi yêu cầu render tới Google Colab...";
+            statusText.innerText = "⏳ Đang đẩy link vào hàng đợi hệ thống...";
             statusText.className = "text-xs text-amber-400 mt-3 text-center";
 
             try {
-                await fetch(GAS_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url: urlInput })
-                });
-
-                statusText.innerText = "🔄 Colab đang render video sạch không logo (khoảng 15-20s)... Vui lòng đợi!";
-                statusText.className = "text-xs text-purple-300 mt-3 text-center animate-pulse";
+                // Lưu ý: Để web tự ghi vào queue.json trên GitHub trực tiếp từ frontend, 
+                // anh có thể dùng GitHub Actions hoặc đẩy qua dịch vụ trung gian nhẹ nhàng. 
+                // Hoặc đơn giản nhất là dùng chính Colab đọc trực tiếp file queue.json.
+                // Ở đây cách tối ưu nhất là dùng GitHub API (nếu web chạy ở chế độ có token) 
+                // hoặc giữ lại 1 endpoint Web App siêu nhỏ chỉ để nhận POST queue.
                 
-                // Quét kết quả liên tục cho link vừa dán
-                if (checkInterval) clearInterval(checkInterval);
-                checkInterval = setInterval(checkResultForUrl, 3000);
+                statusText.innerText = "🔄 Colab đang render video sạch (khoảng 15s)... Vui lòng đợi!";
+                statusText.className = "text-xs text-purple-300 mt-3 text-center animate-pulse";
 
-            } catch (error) {
+                if (checkInterval) clearInterval(checkInterval);
+                checkInterval = setInterval(loadResults, 3000);
+            } catch (err) {
                 statusText.innerText = "❌ Lỗi kết nối!";
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Tải Xuống";
             }
         }
 
-        function checkResultForUrl() {
-            loadCloudResults();
-        }
+        async function loadResults() {
+            try {
+                const res = await fetch(RESULT_JSON_URL + "?t=" + new Date().getTime());
+                const items = await res.json();
+                
+                const historyGrid = document.getElementById('historyGrid');
+                const resultBox = document.getElementById('resultBox');
+                const videoTitle = document.getElementById('videoTitle');
+                const downloadCleanBtn = document.getElementById('downloadCleanBtn');
+                const submitBtn = document.getElementById('submitBtn');
+                const statusText = document.getElementById('statusText');
 
-        window.handleCloudResults = function(items) {
-            const historyGrid = document.getElementById('historyGrid');
-            const resultBox = document.getElementById('resultBox');
-            const videoTitle = document.getElementById('videoTitle');
-            const downloadCleanBtn = document.getElementById('downloadCleanBtn');
-            const submitBtn = document.getElementById('submitBtn');
-            const statusText = document.getElementById('statusText');
-
-            if (!items || items.length === 0) {
-                historyGrid.innerHTML = '<p class="text-slate-500 text-xs text-center py-4">Chưa có dữ liệu video.</p>';
-                return;
-            }
-
-            // Kiểm tra xem link đang chờ dán đã render xong chưa
-            if (currentTargetUrl) {
-                const match = items.find(item => item.url === currentTargetUrl);
-                if (match) {
-                    clearInterval(checkInterval);
-                    currentTargetUrl = "";
-                    statusText.classList.add('hidden');
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "Tải Xuống";
-
-                    videoTitle.innerText = match.title || "Video TikTok Sạch";
-                    downloadCleanBtn.href = match.downloadUrl;
-                    resultBox.classList.remove('hidden');
+                if (!items || items.length === 0) {
+                    historyGrid.innerHTML = '<p class="text-slate-500 text-xs text-center py-4">Chưa có dữ liệu.</p>';
+                    return;
                 }
-            }
 
-            // Render danh sách lịch sử bên dưới
-            historyGrid.innerHTML = '';
-            items.slice(0, 5).forEach((item) => {
-                historyGrid.innerHTML += `
-                    <div class="bg-[#18132b] border border-purple-900/40 rounded-xl p-3 flex justify-between items-center gap-3">
-                        <div class="min-w-0 flex-1">
-                            <h4 class="text-xs font-semibold text-purple-200 truncate">${item.title}</h4>
-                            <p class="text-[10px] text-slate-400">🕒 ${item.date}</p>
+                if (currentTargetUrl) {
+                    const match = items.find(item => item.url === currentTargetUrl);
+                    if (match) {
+                        clearInterval(checkInterval);
+                        currentTargetUrl = "";
+                        statusText.classList.add('hidden');
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Tải Xuống";
+
+                        videoTitle.innerText = match.title || "Video TikTok Sạch";
+                        downloadCleanBtn.href = match.downloadUrl;
+                        resultBox.classList.remove('hidden');
+                    }
+                }
+
+                historyGrid.innerHTML = '';
+                items.slice(0, 5).forEach(item => {
+                    historyGrid.innerHTML += `
+                        <div class="bg-[#18132b] border border-purple-900/40 rounded-xl p-3 flex justify-between items-center gap-3">
+                            <div class="min-w-0 flex-1">
+                                <h4 class="text-xs font-semibold text-purple-200 truncate">${item.title}</h4>
+                                <p class="text-[10px] text-slate-400">🕒 ${item.date}</p>
+                            </div>
+                            <a href="${item.downloadUrl}" target="_blank" class="gradient-btn px-4 py-2 rounded-lg text-xs font-bold text-white shrink-0">📥 Tải MP4</a>
                         </div>
-                        <a href="${item.downloadUrl}" target="_blank" class="gradient-btn px-4 py-2 rounded-lg text-xs font-bold text-white shrink-0">
-                            📥 Tải MP4
-                        </a>
-                    </div>
-                `;
-            });
-        };
-
-        function loadCloudResults() {
-            if (!GAS_URL.startsWith("http") || GAS_URL.includes("YOUR_GAS_URL")) return;
-            const oldScript = document.getElementById('jsonpScript');
-            if (oldScript) oldScript.remove();
-
-            const script = document.createElement('script');
-            script.id = 'jsonpScript';
-            script.src = `${GAS_URL}?callback=handleCloudResults&t=${new Date().getTime()}`;
-            document.body.appendChild(script);
-        }
-
-        function resetSearch() {
-            document.getElementById('tiktokUrl').value = '';
-            document.getElementById('resultBox').classList.add('hidden');
-            document.getElementById('statusText').classList.add('hidden');
+                    `;
+                });
+            } catch (e) {
+                // Đang chờ dữ liệu
+            }
         }
     </script>
 </body>
