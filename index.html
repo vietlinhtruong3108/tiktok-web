@@ -3,59 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Tự Động Hóa Re-up TikTok</title>
+    <title>SnapTik - Tải Video TikTok Không Logo / Render Video Sạch</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-btn {
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+        }
+        .gradient-btn:hover {
+            background: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
+        }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-6">
-    <div class="max-w-4xl mx-auto">
-        <header class="mb-6 text-center">
-            <h1 class="text-2xl md:text-3xl font-bold mb-2">🚀 Hệ Thống Tự Động Hóa Re-up TikTok</h1>
-            <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab render ngầm 👉 Danh sách hiển thị trực tiếp bên dưới</p>
-        </header>
+<body class="bg-[#0f0b1e] text-slate-100 min-h-screen flex flex-col items-center justify-start p-4 md:p-8 font-sans">
 
-        <!-- Khung nhập link -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 shadow-xl mb-8">
-            <h2 class="text-sm font-semibold mb-3 text-indigo-300">📥 Dán Link TikTok Cần Xử Lý:</h2>
+    <!-- Header SnapTik Style -->
+    <header class="w-full max-w-4xl text-center mb-8">
+        <h1 class="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 tracking-wider mb-3">SNAPTIK RENDER</h1>
+        <p class="text-slate-300 text-sm md:text-base font-semibold">Tải Video TikTok Không Logo, Render Video Sạch Miễn Phí</p>
+    </header>
+
+    <main class="w-full max-w-2xl">
+        <!-- Khung Nhập Link -->
+        <div id="searchBox" class="bg-[#18132b] border border-purple-900/50 rounded-2xl p-4 md:p-6 shadow-2xl mb-6">
             <div class="flex flex-col md:flex-row gap-3">
-                <input type="text" id="tiktokUrl" placeholder="Dán link TikTok (vd: https://vt.tiktok.com/...)" class="bg-slate-900 border border-slate-700 px-4 py-3 rounded-lg flex-1 focus:outline-none focus:border-indigo-500 text-sm">
-                <button onclick="sendToDrive()" id="submitBtn" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-medium text-sm transition text-center text-white shrink-0">Gửi Vào Hàng Đợi</button>
+                <input type="text" id="tiktokUrl" placeholder="Dán link TikTok (vd: https://vt.tiktok.com/...)" class="bg-[#0f0b1e] border border-purple-800/60 text-white px-5 py-4 rounded-xl flex-1 focus:outline-none focus:border-pink-500 text-sm md:text-base">
+                <button onclick="processVideo()" id="submitBtn" class="gradient-btn font-bold px-8 py-4 rounded-xl text-white transition transform active:scale-95 shadow-lg text-sm md:text-base shrink-0">
+                    Tải Xuống
+                </button>
             </div>
-            <p id="statusText" class="text-xs text-slate-400 mt-3 text-center"></p>
+            <p id="statusText" class="text-xs text-purple-300 mt-3 text-center hidden"></p>
         </div>
 
-        <!-- Khung danh sách Video đã Render -->
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-emerald-400">📦 Kho Video Sạch Đã Render Xong</h2>
-            <button onclick="loadCloudResults()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới danh sách</button>
+        <!-- Khung Kết Quả Hiển Thị Nút Tải Giống SnapTik -->
+        <div id="resultBox" class="bg-[#18132b] border border-purple-900/50 rounded-2xl p-6 shadow-2xl hidden">
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <!-- Thumbnail / Icon đại diện -->
+                <div class="w-28 h-28 bg-purple-950/60 border border-purple-700/50 rounded-xl flex items-center justify-center text-4xl shrink-0">
+                    🎬
+                </div>
+
+                <!-- Tiêu đề & Nút bấm Tải MP4 -->
+                <div class="flex-1 w-full space-y-3 text-center md:text-left">
+                    <h3 id="videoTitle" class="text-sm font-semibold text-slate-200 line-clamp-2">...</h3>
+                    
+                    <div class="space-y-2 pt-2">
+                        <a id="downloadCleanBtn" href="#" target="_blank" class="block w-full text-center gradient-btn font-bold py-3 px-4 rounded-xl text-white shadow-lg transition transform hover:scale-[1.01]">
+                            Tải MP4 (Video Sạch / Lách Logo)
+                        </a>
+                        <button onclick="resetSearch()" class="block w-full text-center bg-[#251d42] hover:bg-[#2d244f] text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-xs transition">
+                            ↩️ Thử liên kết khác
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div id="storageGrid" class="space-y-3">
-            <p class="text-slate-400 text-center py-6">⏳ Đang lấy dữ liệu danh sách video...</p>
+
+        <!-- Danh Sách Các Video Render Gần Đây -->
+        <div class="mt-10">
+            <h3 class="text-xs font-bold uppercase text-purple-400 tracking-wider mb-4 text-center md:text-left">📜 Lịch Sử Video Đã Render Gần Đây</h3>
+            <div id="historyGrid" class="space-y-3">
+                <p class="text-slate-500 text-xs text-center py-4">Đang tải lịch sử kết quả...</p>
+            </div>
         </div>
-    </div>
+    </main>
 
     <script>
-        // ⚡ Dán URL Web App Google Apps Script của anh vào đây:
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxiGhtywQtdzp-juiRyjRcL-bFEtX8jSSW312qTsxqTq8p-GCV_cr8aTlvZNJotZDEfWg/exec"; 
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxkWSXSqH12CRHCCQrL1a5ugW-0DRNSJiYCx6pQpAgzBU0gpnjt2kFaw9BuZ16zQ4Lc1A/exec"; // ⚡ DÁN ĐƯỜNG DẪN WEB APP CỦA ANH VÀO ĐÂY
+        let currentTargetUrl = "";
+        let checkInterval = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCloudResults();
-            setInterval(loadCloudResults, 4000); // Đồng bộ danh sách mỗi 4s
+            setInterval(loadCloudResults, 6000);
         });
 
-        async function sendToDrive() {
+        async function processVideo() {
             const urlInput = document.getElementById('tiktokUrl').value.trim();
             const statusText = document.getElementById('statusText');
             const submitBtn = document.getElementById('submitBtn');
+            const resultBox = document.getElementById('resultBox');
 
             if (!urlInput) {
-                statusText.innerText = "Vui lòng dán link TikTok hợp lệ!";
-                statusText.className = "text-xs text-rose-400 mt-3 text-center";
+                alert("Vui lòng dán link TikTok hợp lệ!");
                 return;
             }
 
-            submitBtn.innerText = "Đang gửi...";
+            currentTargetUrl = urlInput;
             submitBtn.disabled = true;
+            submitBtn.innerText = "Đang xử lý...";
+            statusText.classList.remove('hidden');
+            statusText.innerText = "⏳ Đang gửi yêu cầu render tới Google Colab...";
+            statusText.className = "text-xs text-amber-400 mt-3 text-center";
 
             try {
                 await fetch(GAS_URL, {
@@ -65,41 +103,65 @@
                     body: JSON.stringify({ url: urlInput })
                 });
 
-                statusText.innerText = "✅ Gửi link thành công! Colab đang tiến hành render ngầm...";
-                statusText.className = "text-xs text-emerald-400 mt-3 text-center";
-                document.getElementById('tiktokUrl').value = '';
-                setTimeout(loadCloudResults, 2000);
+                statusText.innerText = "🔄 Colab đang render video sạch không logo (khoảng 15-20s)... Vui lòng đợi!";
+                statusText.className = "text-xs text-purple-300 mt-3 text-center animate-pulse";
+                
+                // Quét kết quả liên tục cho link vừa dán
+                if (checkInterval) clearInterval(checkInterval);
+                checkInterval = setInterval(checkResultForUrl, 3000);
+
             } catch (error) {
-                statusText.innerText = "❌ Lỗi kết nối: " + error;
-                statusText.className = "text-xs text-rose-400 mt-3 text-center";
-            } finally {
-                submitBtn.innerText = "Gửi Vào Hàng Đợi";
+                statusText.innerText = "❌ Lỗi kết nối!";
                 submitBtn.disabled = false;
+                submitBtn.innerText = "Tải Xuống";
             }
         }
 
-        // Nhận dữ liệu kết quả từ result.json và dựng thành ô danh sách
+        function checkResultForUrl() {
+            loadCloudResults();
+        }
+
         window.handleCloudResults = function(items) {
-            const storageGrid = document.getElementById('storageGrid');
-            storageGrid.innerHTML = '';
+            const historyGrid = document.getElementById('historyGrid');
+            const resultBox = document.getElementById('resultBox');
+            const videoTitle = document.getElementById('videoTitle');
+            const downloadCleanBtn = document.getElementById('downloadCleanBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            const statusText = document.getElementById('statusText');
 
             if (!items || items.length === 0) {
-                storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Chưa có video nào trong danh sách. Hãy dán link để bắt đầu!</p>';
+                historyGrid.innerHTML = '<p class="text-slate-500 text-xs text-center py-4">Chưa có dữ liệu video.</p>';
                 return;
             }
 
-            items.forEach((item) => {
-                const title = item.title || item.fileName || 'Video Sạch';
-                const date = item.date || 'Gần đây';
-                const downloadUrl = item.downloadUrl || 'https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y';
+            // Kiểm tra xem link đang chờ dán đã render xong chưa
+            if (currentTargetUrl) {
+                const match = items.find(item => item.url === currentTargetUrl);
+                if (match) {
+                    clearInterval(checkInterval);
+                    currentTargetUrl = "";
+                    statusText.classList.add('hidden');
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Tải Xuống";
 
-                storageGrid.innerHTML += `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
+                    videoTitle.innerText = match.title || "Video TikTok Sạch";
+                    downloadCleanBtn.href = match.downloadUrl;
+                    resultBox.classList.remove('hidden');
+                }
+            }
+
+            // Render danh sách lịch sử bên dưới
+            historyGrid.innerHTML = '';
+            items.slice(0, 5).forEach((item) => {
+                historyGrid.innerHTML += `
+                    <div class="bg-[#18132b] border border-purple-900/40 rounded-xl p-3 flex justify-between items-center gap-3">
                         <div class="min-w-0 flex-1">
-                            <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${title}</h4>
-                            <p class="text-[11px] text-slate-400">🕒 Hoàn thành lúc: ${date}</p>
+                            <h4 class="text-xs font-semibold text-purple-200 truncate">${item.title}</h4>
+                            <p class="text-[10px] text-slate-400">🕒 ${item.date}</p>
                         </div>
-                        <a href="${downloadUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📥 Tải Video Đã Render</a>
+                        <a href="${item.downloadUrl}" target="_blank" class="gradient-btn px-4 py-2 rounded-lg text-xs font-bold text-white shrink-0">
+                            📥 Tải MP4
+                        </a>
                     </div>
                 `;
             });
@@ -107,7 +169,6 @@
 
         function loadCloudResults() {
             if (!GAS_URL.startsWith("http") || GAS_URL.includes("YOUR_GAS_URL")) return;
-
             const oldScript = document.getElementById('jsonpScript');
             if (oldScript) oldScript.remove();
 
@@ -115,6 +176,12 @@
             script.id = 'jsonpScript';
             script.src = `${GAS_URL}?callback=handleCloudResults&t=${new Date().getTime()}`;
             document.body.appendChild(script);
+        }
+
+        function resetSearch() {
+            document.getElementById('tiktokUrl').value = '';
+            document.getElementById('resultBox').classList.add('hidden');
+            document.getElementById('statusText').classList.add('hidden');
         }
     </script>
 </body>
