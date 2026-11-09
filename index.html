@@ -21,27 +21,25 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
             </svg>
         </div>
-        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white">TikTok Anti-AI Batch Engine</h1>
-        <p class="text-xs md:text-sm text-slate-400 mt-1">Hệ thống tự động tải & render hàng loạt lách thuật toán AI (GPU T4)</p>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white">TikTok Anti-AI Re-up Engine</h1>
+        <p class="text-xs md:text-sm text-slate-400 mt-1">Hệ thống tự động tải & render lách thuật toán AI - Giữ nét căng HD</p>
     </header>
 
     <!-- Main Container -->
     <main class="w-full max-w-2xl bg-[#161224] border border-purple-900/40 rounded-3xl p-6 shadow-2xl backdrop-blur-xl">
         
-        <!-- Input Form (Hỗ trợ nhiều dòng link) -->
+        <!-- Input Form -->
         <div class="space-y-4">
             <div>
-                <label class="block text-xs font-semibold text-purple-300 uppercase tracking-wider mb-2">
-                    Dán Danh Sách Link TikTok (Mỗi link 1 dòng để render hàng loạt)
-                </label>
+                <label class="block text-xs font-semibold text-purple-300 uppercase tracking-wider mb-2">Dán Link Video TikTok Gốc</label>
                 <div class="relative">
-                    <textarea id="videoUrls" rows="4" placeholder="https://www.tiktok.com/@username/video/1111111&#10;https://www.tiktok.com/@username/video/2222222&#10;https://www.tiktok.com/@username/video/3333333" 
-                        class="w-full bg-[#1e1836] border border-purple-800/60 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition resize-none"></textarea>
+                    <input type="text" id="videoUrl" placeholder="https://www.tiktok.com/@username/video/..." 
+                        class="w-full bg-[#1e1836] border border-purple-800/60 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition">
                 </div>
             </div>
 
-            <button onclick="submitBatchTasks()" id="submitBtn" class="w-full gradient-btn py-3.5 rounded-xl font-bold text-sm text-white shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2">
-                <span>🚀 Đưa Hàng Loạt Vào Hàng Đợi Render</span>
+            <button onclick="submitTask()" id="submitBtn" class="w-full gradient-btn py-3.5 rounded-xl font-bold text-sm text-white shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2">
+                <span>🚀 Đưa Vào Hàng Đợi Render</span>
             </button>
         </div>
 
@@ -53,7 +51,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400">Danh Sách Đã Render & Quản Lý Drive</h3>
                 
-                <!-- Nút Mở Thư Mục Tổng Trên Google Drive -->
+                <!-- Link Thư Mục Render Tổng -->
                 <a href="https://drive.google.com/drive/folders/1HIYmeEIUu-phDt1AvFSsSARpMKuqReF7?usp=drive_link" target="_blank" 
                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-900/50 border border-purple-700/60 hover:bg-purple-800/70 rounded-lg text-xs font-bold text-purple-200 transition shadow-md">
                    <span>📂 Mở Thư Mục Drive</span>
@@ -61,7 +59,7 @@
             </div>
 
             <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] text-slate-400">Các video đã xử lý xong sẽ hiển thị dưới đây:</span>
+                <span class="text-[11px] text-slate-400">Video render xong sẽ tự xuất hiện tại đây:</span>
                 <span id="itemCount" class="bg-purple-900/60 px-2 py-0.5 rounded-full text-[10px] text-purple-300">0 video</span>
             </div>
 
@@ -77,48 +75,37 @@
     </footer>
 
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSOPh1yzzJfOg9TlSh0T3uO0F4OWR7KHeORlMK4mHr7MosOf3kmKhRYivRTIJCbOsN/exec";
+        const APPS_SCRIPT_URL = "DÁN_WEB_APP_URL_CỦA_APPS_SCRIPT_VÀO_ĐÂY";
 
-        async function submitBatchTasks() {
-            const urlsInput = document.getElementById('videoUrls');
+        async function submitTask() {
+            const urlInput = document.getElementById('videoUrl');
             const submitBtn = document.getElementById('submitBtn');
-            const rawText = urlsInput.value.trim();
+            const url = urlInput.value.trim();
 
-            if (!rawText) {
-                showStatus('Vui lòng nhập ít nhất 1 link TikTok!', 'error');
-                return;
-            }
-
-            // Tách danh sách link theo từng dòng
-            const urlList = rawText.split('\n')
-                                   .map(line => line.trim())
-                                   .filter(line => line.includes('tiktok.com'));
-
-            if (urlList.length === 0) {
-                showStatus('Không tìm thấy link TikTok hợp lệ nào!', 'error');
+            if (!url.includes('tiktok.com')) {
+                showStatus('Vui lòng nhập link TikTok hợp lệ!', 'error');
                 return;
             }
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<span>Đang gửi ${urlList.length} link vào hàng đợi...</span>`;
+            submitBtn.innerHTML = '<span>Đang gửi link...</span>';
 
             try {
-                // Gửi danh sách link lên Google Apps Script
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ urls: urlList })
+                    body: JSON.stringify({ url: url })
                 });
 
-                showStatus(`✅ Đã gửi thành công ${urlList.length} video vào hàng đợi! Colab đang tiến hành render hàng loạt...`, 'success');
-                urlsInput.value = '';
+                showStatus('✅ Đã gửi link thành công! Colab đang tiến hành render...', 'success');
+                urlInput.value = '';
                 setTimeout(loadHistory, 3000);
             } catch (error) {
-                showStatus('❌ Lỗi gửi dữ liệu. Vui lòng thử lại!', 'error');
+                showStatus('❌ Lỗi gửi dữ liệu!', 'error');
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>🚀 Đưa Hàng Loạt Vào Hàng Đợi Render</span>';
+                submitBtn.innerHTML = '<span>🚀 Đưa Vào Hàng Đợi Render</span>';
             }
         }
 
@@ -167,7 +154,7 @@
                     historyGrid.appendChild(card);
                 });
             } catch (err) {
-                console.log("Đang chờ dữ liệu...");
+                console.log("Đang tải dữ liệu...");
             }
         }
 
