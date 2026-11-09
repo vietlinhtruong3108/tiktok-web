@@ -10,7 +10,7 @@
     <div class="max-w-3xl mx-auto">
         <header class="mb-6 text-center">
             <h1 class="text-2xl md:text-3xl font-bold mb-2">🚀 Hệ Thống Tự Động Hóa Re-up TikTok</h1>
-            <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab tự động render 👉 Lưu thẳng vào Drive</p>
+            <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab render ngầm 👉 Mỗi video lưu 1 thư mục riêng</p>
         </header>
 
         <!-- Khung nhập link -->
@@ -23,24 +23,22 @@
             <p id="statusText" class="text-xs text-slate-400 mt-3 text-center"></p>
         </div>
 
-        <!-- Khung truy cập Thư Mục Drive chứa Video Sạch -->
+        <!-- Khung truy cập Thư Mục Quản Lý Video -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl text-center">
             <div class="inline-flex items-center justify-center w-12 h-12 bg-emerald-500/10 rounded-full text-emerald-400 mb-3">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=" "></path></svg>
                 📁
             </div>
-            <h2 class="text-lg font-bold text-emerald-400 mb-2">Kho Video Sạch Đã Render Xong</h2>
-            <p class="text-slate-400 text-xs mb-6">Mọi video sau khi Colab render xong sẽ xuất hiện ngay trong thư mục này với tiêu đề chuẩn TikTok.</p>
+            <h2 class="text-lg font-bold text-emerald-400 mb-2">Kho Thư Mục Video Đã Render</h2>
+            <p class="text-slate-400 text-xs mb-6">Mỗi video render xong sẽ tự động được chia thành 1 thư mục riêng nằm trong folder <b>Rendered_Videos</b> trên Drive.</p>
             
             <a href="https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y" target="_blank" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 px-6 py-3.5 rounded-xl font-bold text-sm text-white shadow-lg transition transform hover:-translate-y-0.5">
-                <span>📂 Mở Thư Mục Video Đã Render (Google Drive)</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                <span>📂 Truy Cập Thư Mục Quản Lý Video Trên Drive</span>
             </a>
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxyKAxHuF8ZTK8FUytwTRCV_P_dzOXbFstmQooT97S8Ebr0wGI3xdn6bNsGi5QZ-TnBAA/exec"; // Thay URL Apps Script Web App của anh vào đây
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyxOaEiaFixVesVwomwqI18K40DJ9CMNWgg8VOs5wyrYvG8q9rM-MDoY9XwiZWzyWDaEw/exec"; // Thay URL Google Apps Script vào đây
 
         async function sendToDrive() {
             const urlInput = document.getElementById('tiktokUrl').value.trim();
@@ -64,7 +62,7 @@
                     body: JSON.stringify({ url: urlInput })
                 });
 
-                statusText.innerText = "✅ Gửi link thành công! Colab đang tiến hành render ngầm.";
+                statusText.innerText = "✅ Gửi link thành công! Colab đang tiến hành render ngầm...";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
             } catch (error) {
