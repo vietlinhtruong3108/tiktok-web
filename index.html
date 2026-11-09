@@ -49,10 +49,20 @@
 
         <!-- History / Results Section -->
         <div class="mt-8 border-t border-purple-900/40 pt-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-4 flex items-center justify-between">
-                <span>Danh Sách Đã Render & Quản Lý Drive</span>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400">Danh Sách Đã Render & Quản Lý Drive</h3>
+                
+                <!-- Nút Mở Thư Mục Tổng Trên Google Drive -->
+                <a href="https://drive.google.com/drive/folders/1HIYmeEIUu-phDt1AvFSsSARpMKuqReF7?usp=drive_link" target="_blank" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-900/50 border border-purple-700/60 hover:bg-purple-800/70 rounded-lg text-xs font-bold text-purple-200 transition shadow-md" title="Mở thư mục tổng Rendered_Videos trên Google Drive">
+                   <span>📂 Mở Thư Mục Drive</span>
+                </a>
+            </div>
+
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-[11px] text-slate-400">Các video đã xử lý xong sẽ hiển thị dưới đây:</span>
                 <span id="itemCount" class="bg-purple-900/60 px-2 py-0.5 rounded-full text-[10px] text-purple-300">0 video</span>
-            </h3>
+            </div>
 
             <div id="historyGrid" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
                 <!-- Danh sách item render sẽ được load tự động vào đây -->
@@ -141,8 +151,8 @@
                             <p class="text-[10px] text-slate-400 mt-0.5">🕒 ${item.date || 'Vừa xong'}</p>
                         </div>
                         <div class="flex gap-2 shrink-0">
-                            <!-- Nút Mở Thư Mục Trên Google Drive -->
-                            <a href="${item.folderUrl || '#'}" target="_blank" class="bg-purple-900/60 hover:bg-purple-800 px-3 py-2 rounded-lg text-xs font-bold text-purple-200 border border-purple-700/50 transition flex items-center gap-1.5" title="Mở thư mục chứa video trên Drive">
+                            <!-- Nút Mở Thư Mục Của Từng Video Trên Google Drive -->
+                            <a href="${item.folderUrl || 'https://drive.google.com/drive/folders/1HIYmeEIUu-phDt1AvFSsSARpMKuqReF7?usp=drive_link'}" target="_blank" class="bg-purple-900/60 hover:bg-purple-800 px-3 py-2 rounded-lg text-xs font-bold text-purple-200 border border-purple-700/50 transition flex items-center gap-1.5" title="Mở thư mục chứa video trên Drive">
                                 <span>📂 Mở Folder</span>
                             </a>
                             <!-- Nút Tải Video Trực Tiếp -->
