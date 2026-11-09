@@ -7,14 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-6">
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-4xl mx-auto">
         <header class="mb-6 text-center">
             <h1 class="text-2xl md:text-3xl font-bold mb-2">🚀 Hệ Thống Tự Động Hóa Re-up TikTok</h1>
-            <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab render ngầm 👉 Mỗi video lưu 1 thư mục riêng</p>
+            <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab render ngầm 👉 Danh sách hiển thị trực tiếp bên dưới</p>
         </header>
 
         <!-- Khung nhập link -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 md:p-6 shadow-xl mb-8">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 shadow-xl mb-8">
             <h2 class="text-sm font-semibold mb-3 text-indigo-300">📥 Dán Link TikTok Cần Xử Lý:</h2>
             <div class="flex flex-col md:flex-row gap-3">
                 <input type="text" id="tiktokUrl" placeholder="Dán link TikTok (vd: https://vt.tiktok.com/...)" class="bg-slate-900 border border-slate-700 px-4 py-3 rounded-lg flex-1 focus:outline-none focus:border-indigo-500 text-sm">
@@ -23,22 +23,25 @@
             <p id="statusText" class="text-xs text-slate-400 mt-3 text-center"></p>
         </div>
 
-        <!-- Khung truy cập Thư Mục Quản Lý Video -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl text-center">
-            <div class="inline-flex items-center justify-center w-12 h-12 bg-emerald-500/10 rounded-full text-emerald-400 mb-3">
-                📁
-            </div>
-            <h2 class="text-lg font-bold text-emerald-400 mb-2">Kho Thư Mục Video Đã Render</h2>
-            <p class="text-slate-400 text-xs mb-6">Mỗi video render xong sẽ tự động được chia thành 1 thư mục riêng nằm trong folder <b>Rendered_Videos</b> trên Drive.</p>
-            
-            <a href="https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y" target="_blank" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 px-6 py-3.5 rounded-xl font-bold text-sm text-white shadow-lg transition transform hover:-translate-y-0.5">
-                <span>📂 Truy Cập Thư Mục Quản Lý Video Trên Drive</span>
-            </a>
+        <!-- Khung danh sách Video đã Render -->
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-emerald-400">📦 Kho Video Sạch Đã Render Xong</h2>
+            <button onclick="loadCloudResults()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới danh sách</button>
+        </div>
+        
+        <div id="storageGrid" class="space-y-3">
+            <p class="text-slate-400 text-center py-6">⏳ Đang lấy dữ liệu danh sách video...</p>
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbyxOaEiaFixVesVwomwqI18K40DJ9CMNWgg8VOs5wyrYvG8q9rM-MDoY9XwiZWzyWDaEw/exec"; // Thay URL Google Apps Script vào đây
+        // ⚡ Dán URL Web App Google Apps Script của anh vào đây:
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxiGhtywQtdzp-juiRyjRcL-bFEtX8jSSW312qTsxqTq8p-GCV_cr8aTlvZNJotZDEfWg/exec"; 
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCloudResults();
+            setInterval(loadCloudResults, 4000); // Đồng bộ danh sách mỗi 4s
+        });
 
         async function sendToDrive() {
             const urlInput = document.getElementById('tiktokUrl').value.trim();
@@ -65,6 +68,7 @@
                 statusText.innerText = "✅ Gửi link thành công! Colab đang tiến hành render ngầm...";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
+                setTimeout(loadCloudResults, 2000);
             } catch (error) {
                 statusText.innerText = "❌ Lỗi kết nối: " + error;
                 statusText.className = "text-xs text-rose-400 mt-3 text-center";
@@ -72,6 +76,45 @@
                 submitBtn.innerText = "Gửi Vào Hàng Đợi";
                 submitBtn.disabled = false;
             }
+        }
+
+        // Nhận dữ liệu kết quả từ result.json và dựng thành ô danh sách
+        window.handleCloudResults = function(items) {
+            const storageGrid = document.getElementById('storageGrid');
+            storageGrid.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Chưa có video nào trong danh sách. Hãy dán link để bắt đầu!</p>';
+                return;
+            }
+
+            items.forEach((item) => {
+                const title = item.title || item.fileName || 'Video Sạch';
+                const date = item.date || 'Gần đây';
+                const downloadUrl = item.downloadUrl || 'https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y';
+
+                storageGrid.innerHTML += `
+                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
+                        <div class="min-w-0 flex-1">
+                            <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${title}</h4>
+                            <p class="text-[11px] text-slate-400">🕒 Hoàn thành lúc: ${date}</p>
+                        </div>
+                        <a href="${downloadUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📥 Tải Video Đã Render</a>
+                    </div>
+                `;
+            });
+        };
+
+        function loadCloudResults() {
+            if (!GAS_URL.startsWith("http") || GAS_URL.includes("YOUR_GAS_URL")) return;
+
+            const oldScript = document.getElementById('jsonpScript');
+            if (oldScript) oldScript.remove();
+
+            const script = document.createElement('script');
+            script.id = 'jsonpScript';
+            script.src = `${GAS_URL}?callback=handleCloudResults&t=${new Date().getTime()}`;
+            document.body.appendChild(script);
         }
     </script>
 </body>
