@@ -30,17 +30,17 @@
         </div>
         
         <div id="storageGrid" class="space-y-3">
-            <p class="text-slate-400 text-center py-6">⏳ Đang lấy dữ liệu từ hệ thống...</p>
+            <p class="text-slate-400 text-center py-6">⏳ Đang đồng bộ danh sách video từ hệ thống...</p>
         </div>
     </div>
 
     <script>
-        // ⚡ DÁN ĐƯỜNG DẪN WEB APP GOOGLE APPS SCRIPT CỦA ANH VÀO ĐÂY:
+        // ⚡ DÁN ĐƯỜNG DẪN WEB APP APPS SCRIPT VÀO ĐÂY:
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxyKAxHuF8ZTK8FUytwTRCV_P_dzOXbFstmQooT97S8Ebr0wGI3xdn6bNsGi5QZ-TnBAA/exec"; 
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCloudResults();
-            setInterval(loadCloudResults, 4000); // Tự động đồng bộ mỗi 4 giây
+            setInterval(loadCloudResults, 5000); // Tự động cập nhật danh sách mỗi 5 giây
         });
 
         async function sendToDrive() {
@@ -78,7 +78,7 @@
             }
         }
 
-        // Nhận dữ liệu tự động từ Apps Script (JSONP Callback)
+        // Đọc danh sách kết quả qua cơ chế Script Tag Injection (JSONP)
         window.handleCloudResults = function(items) {
             const storageGrid = document.getElementById('storageGrid');
             storageGrid.innerHTML = '';
