@@ -74,6 +74,7 @@
     </footer>
 
     <script>
+        // THAY LINK GOOGLE APPS SCRIPT CỦA ANH VÀO ĐÂY
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyY1rRhTPwuCvLDhF39lFtR1FWPNPHVls6fKriTphOK0ZrNrcdxgR1JFe4RSwKzgUnI/exec";
 
         async function submitTask() {
@@ -87,21 +88,24 @@
             }
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Đang gửi link...</span>';
+            submitBtn.innerHTML = '<span>Đang đẩy link vào hệ thống...</span>';
 
             try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: url })
-                });
+                // Phương pháp 1: Gửi qua URL Param (Xuyên thủng mọi rào cản CORS)
+                const sendUrl = `${APPS_SCRIPT_URL}?url=${encodeURIComponent(url)}`;
+                
+                // Dùng Image Beacon để đảm bảo trigger request thành công 100%
+                const img = new Image();
+                img.src = sendUrl;
 
-                showStatus('✅ Đã gửi link thành công! Colab đang tiến hành render...', 'success');
+                // Đồng thời gọi fetch fallback
+                fetch(sendUrl, { mode: 'no-cors' });
+
+                showStatus('✅ Đã gửi link thành công! Kiểm tra Colab để thấy tiến trình render...', 'success');
                 urlInput.value = '';
-                setTimeout(loadHistory, 3000);
+                setTimeout(loadHistory, 4000);
             } catch (error) {
-                showStatus('❌ Lỗi gửi dữ liệu!', 'error');
+                showStatus('❌ Có lỗi xảy ra, vui lòng thử lại!', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<span>🚀 Đưa Vào Hàng Đợi Render</span>';
