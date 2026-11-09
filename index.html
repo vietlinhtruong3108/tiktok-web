@@ -30,16 +30,16 @@
         </div>
         
         <div id="storageGrid" class="space-y-3">
-            <p class="text-slate-400 text-center py-6">⏳ Đang lấy dữ liệu từ Google Drive...</p>
+            <p class="text-slate-400 text-center py-6">⏳ Đang kết nối lấy dữ liệu...</p>
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxqexFlZjcJhbcSeGBjmW_WQKhZ-xutxQkzulbGv_wutL0x6cas09jdn9MEftRGYSf_XA/exec"; // Dán link Apps Script của anh vào đây
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzkOpSHZDdZaxipj-QCUYNXaJKfIsuJWn7-sULVa7BZtwEbjrBigJlXS5iXy8dy1f9p0Q/exec"; // Thay link Google Apps Script Web App của anh vào đây
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCloudResults();
-            setInterval(loadCloudResults, 6000);
+            setInterval(loadCloudResults, 6000); // Tự động làm mới danh sách mỗi 6 giây
         });
 
         async function sendToDrive() {
@@ -79,7 +79,7 @@
             }
         }
 
-        // Hàm JSONP Callback được gọi khi script nạp thành công
+        // Hàm nhận dữ liệu JSONP từ Google Apps Script trả về
         window.handleCloudResults = function(items) {
             const storageGrid = document.getElementById('storageGrid');
             storageGrid.innerHTML = '';
@@ -109,11 +109,11 @@
         function loadCloudResults() {
             if (!GAS_URL.startsWith("http")) return;
 
-            // Xóa thẻ script cũ nếu có
+            // Xóa script cũ tránh rác DOM
             const oldScript = document.getElementById('jsonpScript');
             if (oldScript) oldScript.remove();
 
-            // Tạo thẻ script mới gọi JSONP để vượt qua CORS
+            // Tạo thẻ script gọi API dưới dạng JSONP để vượt qua bảo mật CORS
             const script = document.createElement('script');
             script.id = 'jsonpScript';
             script.src = `${GAS_URL}?callback=handleCloudResults&t=${new Date().getTime()}`;
