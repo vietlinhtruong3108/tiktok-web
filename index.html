@@ -13,7 +13,7 @@
             <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab tự động chạy 👉 Nhận kết quả trực tiếp</p>
         </header>
 
-        <!-- Khung nhập link -->
+        <!-- Khung nhập link (Bước 1) -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 shadow-xl mb-8">
             <h2 class="text-sm font-semibold mb-3 text-indigo-300">📥 Dán Link TikTok Cần Xử Lý:</h2>
             <div class="flex flex-col md:flex-row gap-3">
@@ -23,23 +23,23 @@
             <p id="statusText" class="text-xs text-slate-400 mt-3 text-center"></p>
         </div>
 
-        <!-- Kho Video Sạch Đã Hoàn Thành -->
+        <!-- Danh sách hiển thị kết quả (Bước 4) -->
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-emerald-400">📦 Kho Video Sạch Đã Hoàn Thành</h2>
+            <h2 class="text-xl font-bold text-emerald-400">📦 Kho Video Sạch Đã Render Xong</h2>
             <button onclick="loadCloudResults()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới danh sách</button>
         </div>
         
         <div id="storageGrid" class="space-y-3">
-            <p class="text-slate-400 text-center py-6">⏳ Đang tải danh sách video...</p>
+            <p class="text-slate-400 text-center py-6">⏳ Đang tải kết quả...</p>
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycby9y9KKNOmf8puDDaBN5n6YVvTd-4y5Q1YyS7o6hkX2-qS_Sdnf1R2j-z_aQjMtWEOlDw/exec"; // ⚡ DÁN LINK APPS SCRIPT VÀO ĐÂY
+        const GAS_URL = "YOUR_GAS_URL_HERE"; // Dán link Apps Script vào đây
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCloudResults();
-            setInterval(loadCloudResults, 6000);
+            setInterval(loadCloudResults, 5000); // Tự động làm mới danh sách mỗi 5s
         });
 
         async function sendToDrive() {
@@ -55,8 +55,6 @@
 
             submitBtn.innerText = "Đang gửi...";
             submitBtn.disabled = true;
-            statusText.innerText = "⏳ Đang truyền link vào hệ thống...";
-            statusText.className = "text-xs text-amber-400 mt-3 text-center";
 
             try {
                 await fetch(GAS_URL, {
@@ -66,10 +64,10 @@
                     body: JSON.stringify({ url: urlInput })
                 });
 
-                statusText.innerText = "✅ Gửi link thành công! Colab đang xử lý ngầm...";
+                statusText.innerText = "✅ Gửi link thành công! Colab đang tiến hành render ngầm...";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
-                setTimeout(loadCloudResults, 3000);
+                setTimeout(loadCloudResults, 2000);
             } catch (error) {
                 statusText.innerText = "❌ Lỗi kết nối: " + error;
                 statusText.className = "text-xs text-rose-400 mt-3 text-center";
@@ -79,20 +77,20 @@
             }
         }
 
-        // Cơ chế JSONP lấy dữ liệu mượt mà, chống chặn CORS hoàn toàn
+        // Nhận dữ liệu kết quả bằng JSONP (Không bị lỗi CORS)
         window.handleCloudResults = function(items) {
             const storageGrid = document.getElementById('storageGrid');
             storageGrid.innerHTML = '';
 
             if (!items || items.length === 0) {
-                storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Kho video đang trống. Hãy dán link để bắt đầu!</p>';
+                storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Chưa có video nào hoàn thành. Hãy dán link để bắt đầu!</p>';
                 return;
             }
 
             items.forEach((item) => {
                 const title = item.title || 'Video Sạch';
                 const date = item.date || 'Gần đây';
-                const downloadUrl = item.downloadUrl || 'https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y';
+                const downloadUrl = item.downloadUrl || '#';
 
                 storageGrid.innerHTML += `
                     <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
@@ -100,7 +98,7 @@
                             <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${title}</h4>
                             <p class="text-[11px] text-slate-400">🕒 Hoàn thành lúc: ${date}</p>
                         </div>
-                        <a href="${downloadUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📥 Tải File Này</a>
+                        <a href="${downloadUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📥 Tải Video Đã Render</a>
                     </div>
                 `;
             });
@@ -108,7 +106,6 @@
 
         function loadCloudResults() {
             if (!GAS_URL.startsWith("http")) return;
-
             const oldScript = document.getElementById('jsonpScript');
             if (oldScript) oldScript.remove();
 
