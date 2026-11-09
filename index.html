@@ -30,16 +30,16 @@
         </div>
         
         <div id="storageGrid" class="space-y-3">
-            <!-- Danh sách kết quả từ Drive sẽ tự động bốc ra đây -->
+            <p class="text-slate-400 text-center py-6">⏳ Đang tải danh sách video...</p>
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxuUcTypEq8c0yAhvU6--_bxH0L17-qsNtnGbOee3jsOAPde9gWAURTxD1qPL6gN3IS/exec"; // ⚡ DÁN LINK APPS SCRIPT VÀO ĐÂY
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby9y9KKNOmf8puDDaBN5n6YVvTd-4y5Q1YyS7o6hkX2-qS_Sdnf1R2j-z_aQjMtWEOlDw/exec"; // ⚡ DÁN LINK APPS SCRIPT VÀO ĐÂY
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCloudResults();
-            setInterval(loadCloudResults, 5000);
+            setInterval(loadCloudResults, 6000);
         });
 
         async function sendToDrive() {
@@ -69,7 +69,7 @@
                 statusText.innerText = "✅ Gửi link thành công! Colab đang xử lý ngầm...";
                 statusText.className = "text-xs text-emerald-400 mt-3 text-center";
                 document.getElementById('tiktokUrl').value = '';
-                setTimeout(loadCloudResults, 2000);
+                setTimeout(loadCloudResults, 3000);
             } catch (error) {
                 statusText.innerText = "❌ Lỗi kết nối: " + error;
                 statusText.className = "text-xs text-rose-400 mt-3 text-center";
@@ -79,128 +79,7 @@
             }
         }
 
-        // Callback nhận dữ liệu theo dạng script injection (JSONP)
-        window.handleCloudResults = function(items) {
-            const storageGrid = document.getElementById('storageGrid');
-            storageGrid.innerHTML = '';
-
-            if (!items || items.length === 0) {
-                storageGrid.innerHTML = '<p class="text-slate-400 text-center py-6">Kho video đang trống. Hãy dán link từ ở trên để bắt đầu!</p>';
-                return;
-            }
-
-            items.forEach((item) => {
-                const title = item.title || 'Video Sạch';
-                const date = item.date || 'Gần đây';
-                const downloadUrl = item.downloadUrl || 'https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y';
-
-                storageGrid.innerHTML += `
-                    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
-                        <div class="min-w-0 flex-1">
-                            <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${title}</h4>
-                            <p class="text-[11px] text-slate-400">🕒 Hoàn thành lúc: ${date}</p>
-                        </div>
-                        <a href="${downloadUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📥 Xem / Tải Video Trực Tiếp</a>
-                    </div>
-                `;
-            });
-        };
-
-        function loadCloudResults() {
-            if (!GAS_URL.startsWith("http")) return;
-
-            const oldScript = document.getElementById('jsonpScript');
-            if (oldScript) oldScript.remove();
-
-            const script = document.createElement('script');
-            script.id = 'jsonpScript';
-            script.src = `${GAS_URL}?callback=handleCloudResults&t=${new Date().getTime()}`;
-            document.body.appendChild(script);
-        }
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Tự Động Hóa Re-up TikTok</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-6">
-    <div class="max-w-4xl mx-auto">
-        <header class="mb-6 text-center">
-            <h1 class="text-2xl md:text-3xl font-bold mb-2">🚀 Hệ Thống Tự Động Hóa Re-up TikTok</h1>
-            <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab tự động chạy 👉 Nhận kết quả trực tiếp</p>
-        </header>
-
-        <!-- Khung nhập link -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 shadow-xl mb-8">
-            <h2 class="text-sm font-semibold mb-3 text-indigo-300">📥 Dán Link TikTok Cần Xử Lý:</h2>
-            <div class="flex flex-col md:flex-row gap-3">
-                <input type="text" id="tiktokUrl" placeholder="Dán link TikTok (vd: https://vt.tiktok.com/...)" class="bg-slate-900 border border-slate-700 px-4 py-3 rounded-lg flex-1 focus:outline-none focus:border-indigo-500 text-sm">
-                <button onclick="sendToDrive()" id="submitBtn" class="bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-lg font-medium text-sm transition text-center text-white">Gửi Vào Hàng Đợi</button>
-            </div>
-            <p id="statusText" class="text-xs text-slate-400 mt-3 text-center"></p>
-        </div>
-
-        <!-- Kho Video Sạch Đã Hoàn Thành -->
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-emerald-400">📦 Kho Video Sạch Đã Hoàn Thành</h2>
-            <button onclick="loadCloudResults()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới danh sách</button>
-        </div>
-        
-        <div id="storageGrid" class="space-y-3">
-            <p class="text-slate-400 text-center py-6">⏳ Đang kết nối lấy dữ liệu...</p>
-        </div>
-    </div>
-
-    <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzkOpSHZDdZaxipj-QCUYNXaJKfIsuJWn7-sULVa7BZtwEbjrBigJlXS5iXy8dy1f9p0Q/exec"; // Thay link Google Apps Script Web App của anh vào đây
-
-        document.addEventListener("DOMContentLoaded", () => {
-            loadCloudResults();
-            setInterval(loadCloudResults, 6000); // Tự động làm mới danh sách mỗi 6 giây
-        });
-
-        async function sendToDrive() {
-            const urlInput = document.getElementById('tiktokUrl').value.trim();
-            const statusText = document.getElementById('statusText');
-            const submitBtn = document.getElementById('submitBtn');
-
-            if (!urlInput) {
-                statusText.innerText = "Vui lòng dán link TikTok hợp lệ!";
-                statusText.className = "text-xs text-rose-400 mt-3 text-center";
-                return;
-            }
-
-            submitBtn.innerText = "Đang gửi...";
-            submitBtn.disabled = true;
-            statusText.innerText = "⏳ Đang truyền link vào hệ thống...";
-            statusText.className = "text-xs text-amber-400 mt-3 text-center";
-
-            try {
-                await fetch(GAS_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url: urlInput })
-                });
-
-                statusText.innerText = "✅ Gửi link thành công! Colab đang xử lý ngầm...";
-                statusText.className = "text-xs text-emerald-400 mt-3 text-center";
-                document.getElementById('tiktokUrl').value = '';
-                setTimeout(loadCloudResults, 2000);
-            } catch (error) {
-                statusText.innerText = "❌ Lỗi kết nối: " + error;
-                statusText.className = "text-xs text-rose-400 mt-3 text-center";
-            } finally {
-                submitBtn.innerText = "Gửi Vào Hàng Đợi";
-                submitBtn.disabled = false;
-            }
-        }
-
-        // Hàm nhận dữ liệu JSONP từ Google Apps Script trả về
+        // Cơ chế JSONP lấy dữ liệu mượt mà, chống chặn CORS hoàn toàn
         window.handleCloudResults = function(items) {
             const storageGrid = document.getElementById('storageGrid');
             storageGrid.innerHTML = '';
@@ -221,7 +100,7 @@
                             <h4 class="text-xs font-semibold text-emerald-300 truncate mb-1">🎬 ${title}</h4>
                             <p class="text-[11px] text-slate-400">🕒 Hoàn thành lúc: ${date}</p>
                         </div>
-                        <a href="${downloadUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📥 Xem / Tải Video Trực Tiếp</a>
+                        <a href="${downloadUrl}" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-xs font-bold transition text-white text-center shrink-0">📥 Tải File Này</a>
                     </div>
                 `;
             });
@@ -230,11 +109,9 @@
         function loadCloudResults() {
             if (!GAS_URL.startsWith("http")) return;
 
-            // Xóa script cũ tránh rác DOM
             const oldScript = document.getElementById('jsonpScript');
             if (oldScript) oldScript.remove();
 
-            // Tạo thẻ script gọi API dưới dạng JSONP để vượt qua bảo mật CORS
             const script = document.createElement('script');
             script.id = 'jsonpScript';
             script.src = `${GAS_URL}?callback=handleCloudResults&t=${new Date().getTime()}`;
