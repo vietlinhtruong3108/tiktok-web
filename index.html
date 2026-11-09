@@ -13,7 +13,7 @@
             <p class="text-slate-400 text-sm">Gửi link từ Web 👉 Colab tự động chạy 👉 Nhận kết quả trực tiếp</p>
         </header>
 
-        <!-- Khung nhập link (Bước 1) -->
+        <!-- Khung nhập link -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 md:p-6 shadow-xl mb-8">
             <h2 class="text-sm font-semibold mb-3 text-indigo-300">📥 Dán Link TikTok Cần Xử Lý:</h2>
             <div class="flex flex-col md:flex-row gap-3">
@@ -23,23 +23,24 @@
             <p id="statusText" class="text-xs text-slate-400 mt-3 text-center"></p>
         </div>
 
-        <!-- Danh sách hiển thị kết quả (Bước 4) -->
+        <!-- Kho Video Sạch Đã Hoàn Thành -->
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold text-emerald-400">📦 Kho Video Sạch Đã Render Xong</h2>
             <button onclick="loadCloudResults()" class="text-xs text-emerald-400 hover:underline">🔄 Làm mới danh sách</button>
         </div>
         
         <div id="storageGrid" class="space-y-3">
-            <p class="text-slate-400 text-center py-6">⏳ Đang tải kết quả...</p>
+            <p class="text-slate-400 text-center py-6">⏳ Đang lấy dữ liệu từ hệ thống...</p>
         </div>
     </div>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxyKAxHuF8ZTK8FUytwTRCV_P_dzOXbFstmQooT97S8Ebr0wGI3xdn6bNsGi5QZ-TnBAA/exec"; // Dán link Apps Script vào đây
+        // ⚡ DÁN ĐƯỜNG DẪN WEB APP GOOGLE APPS SCRIPT CỦA ANH VÀO ĐÂY:
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxyKAxHuF8ZTK8FUytwTRCV_P_dzOXbFstmQooT97S8Ebr0wGI3xdn6bNsGi5QZ-TnBAA/exec"; 
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCloudResults();
-            setInterval(loadCloudResults, 5000); // Tự động làm mới danh sách mỗi 5s
+            setInterval(loadCloudResults, 4000); // Tự động đồng bộ mỗi 4 giây
         });
 
         async function sendToDrive() {
@@ -77,7 +78,7 @@
             }
         }
 
-        // Nhận dữ liệu kết quả bằng JSONP (Không bị lỗi CORS)
+        // Nhận dữ liệu tự động từ Apps Script (JSONP Callback)
         window.handleCloudResults = function(items) {
             const storageGrid = document.getElementById('storageGrid');
             storageGrid.innerHTML = '';
@@ -90,7 +91,7 @@
             items.forEach((item) => {
                 const title = item.title || 'Video Sạch';
                 const date = item.date || 'Gần đây';
-                const downloadUrl = item.downloadUrl || '#';
+                const downloadUrl = item.downloadUrl || 'https://drive.google.com/drive/folders/1sIwC6jk4f93PO6TvCR2xE9slOh6gLT1Y';
 
                 storageGrid.innerHTML += `
                     <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shadow-lg">
@@ -105,7 +106,8 @@
         };
 
         function loadCloudResults() {
-            if (!GAS_URL.startsWith("http")) return;
+            if (!GAS_URL.startsWith("http") || GAS_URL.includes("YOUR_GAS_URL")) return;
+
             const oldScript = document.getElementById('jsonpScript');
             if (oldScript) oldScript.remove();
 
