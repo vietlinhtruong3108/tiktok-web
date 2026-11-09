@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); }
         .gradient-btn { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); transition: all 0.3s ease; }
         .gradient-btn:hover { opacity: 0.9; transform: translateY(-1px); }
     </style>
@@ -22,7 +23,7 @@
             </svg>
         </div>
         <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white">TikTok Anti-AI Re-up Engine</h1>
-        <p class="text-xs md:text-sm text-slate-400 mt-1">Hệ thống tự động tải & render lách thuật toán AI - Giữ nét căng HD</p>
+        <p class="text-xs md:text-sm text-slate-400 mt-1">Hệ thống tự động tải & render chuyên sâu lách thuật toán AI - Giữ nguyên nét căng 1080p/4K</p>
     </header>
 
     <!-- Main Container -->
@@ -51,46 +52,52 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400">Danh Sách Đã Render & Quản Lý Drive</h3>
                 
-                <!-- Link Thư Mục Render Tổng -->
+                <!-- Nút Mở Thư Mục Tổng Trên Google Drive -->
                 <a href="https://drive.google.com/drive/folders/1HIYmeEIUu-phDt1AvFSsSARpMKuqReF7?usp=drive_link" target="_blank" 
-                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-900/50 border border-purple-700/60 hover:bg-purple-800/70 rounded-lg text-xs font-bold text-purple-200 transition shadow-md">
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-900/50 border border-purple-700/60 hover:bg-purple-800/70 rounded-lg text-xs font-bold text-purple-200 transition shadow-md" title="Mở thư mục tổng Rendered_Videos trên Google Drive">
                    <span>📂 Mở Thư Mục Drive</span>
                 </a>
             </div>
 
             <div class="flex items-center justify-between mb-3">
-                <span class="text-[11px] text-slate-400">Video render xong sẽ tự xuất hiện tại đây:</span>
+                <span class="text-[11px] text-slate-400">Các video đã xử lý xong sẽ hiển thị dưới đây:</span>
                 <span id="itemCount" class="bg-purple-900/60 px-2 py-0.5 rounded-full text-[10px] text-purple-300">0 video</span>
             </div>
 
             <div id="historyGrid" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                <!-- Danh sách item render sẽ được load tự động vào đây -->
                 <div class="text-center py-6 text-slate-500 text-xs">Chưa có video nào được render gần đây.</div>
             </div>
         </div>
 
     </main>
 
+    <!-- Footer -->
     <footer class="w-full max-w-2xl text-center mt-8 text-xs text-slate-500">
         <p>Google Drive & Google Colab Pipeline Automation © 2026</p>
     </footer>
 
+    <!-- JavaScript Xử Lý -->
     <script>
+        // THAY LINK GOOGLE APPS SCRIPT CỦA ANH VÀO ĐÂY
         const APPS_SCRIPT_URL = "DÁN_WEB_APP_URL_CỦA_APPS_SCRIPT_VÀO_ĐÂY";
 
         async function submitTask() {
             const urlInput = document.getElementById('videoUrl');
             const submitBtn = document.getElementById('submitBtn');
+            const statusBox = document.getElementById('statusBox');
             const url = urlInput.value.trim();
 
             if (!url.includes('tiktok.com')) {
-                showStatus('Vui lòng nhập link TikTok hợp lệ!', 'error');
+                showStatus('Vui lòng nhập một link TikTok hợp lệ!', 'error');
                 return;
             }
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Đang gửi link...</span>';
+            submitBtn.innerHTML = '<span>Đang gửi link vào hệ thống...</span>';
 
             try {
+                // Gửi link qua Google Apps Script để ghi vào queue.json trên Drive
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -98,11 +105,11 @@
                     body: JSON.stringify({ url: url })
                 });
 
-                showStatus('✅ Đã gửi link thành công! Colab đang tiến hành render...', 'success');
+                showStatus('✅ Đã đẩy task thành công! Google Colab đang tiến hành render...', 'success');
                 urlInput.value = '';
-                setTimeout(loadHistory, 3000);
+                setTimeout(loadHistory, 3000); // Tải lại lịch sử sau 3 giây
             } catch (error) {
-                showStatus('❌ Lỗi gửi dữ liệu!', 'error');
+                showStatus('❌ Lỗi kết nối hệ thống. Vui lòng thử lại!', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<span>🚀 Đưa Vào Hàng Đợi Render</span>';
@@ -119,6 +126,7 @@
 
         async function loadHistory() {
             try {
+                // Đọc file result.json từ Google Apps Script (GET method)
                 const response = await fetch(APPS_SCRIPT_URL);
                 const data = await response.json();
                 
@@ -143,9 +151,11 @@
                             <p class="text-[10px] text-slate-400 mt-0.5">🕒 ${item.date || 'Vừa xong'}</p>
                         </div>
                         <div class="flex gap-2 shrink-0">
-                            <a href="${item.folderUrl || 'https://drive.google.com/drive/folders/1HIYmeEIUu-phDt1AvFSsSARpMKuqReF7?usp=drive_link'}" target="_blank" class="bg-purple-900/60 hover:bg-purple-800 px-3 py-2 rounded-lg text-xs font-bold text-purple-200 border border-purple-700/50 transition flex items-center gap-1.5">
+                            <!-- Nút Mở Thư Mục Của Từng Video Trên Google Drive -->
+                            <a href="${item.folderUrl || 'https://drive.google.com/drive/folders/1HIYmeEIUu-phDt1AvFSsSARpMKuqReF7?usp=drive_link'}" target="_blank" class="bg-purple-900/60 hover:bg-purple-800 px-3 py-2 rounded-lg text-xs font-bold text-purple-200 border border-purple-700/50 transition flex items-center gap-1.5" title="Mở thư mục chứa video trên Drive">
                                 <span>📂 Mở Folder</span>
                             </a>
+                            <!-- Nút Tải Video Trực Tiếp -->
                             <a href="${item.downloadUrl || '#'}" target="_blank" class="gradient-btn px-3.5 py-2 rounded-lg text-xs font-bold text-white shadow-md flex items-center gap-1.5">
                                 <span>📥 Tải MP4</span>
                             </a>
@@ -154,10 +164,11 @@
                     historyGrid.appendChild(card);
                 });
             } catch (err) {
-                console.log("Đang tải dữ liệu...");
+                console.log("Đang chờ dữ liệu lịch sử...");
             }
         }
 
+        // Tự động load lịch sử khi mở web và cập nhật định kỳ mỗi 10 giây
         loadHistory();
         setInterval(loadHistory, 10000);
     </script>
